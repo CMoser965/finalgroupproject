@@ -26,12 +26,28 @@
 
 #include "include/data.h"
 
+/*
+* 
+* Function: error
+* ---------------
+* Prints the error code and exits with code 1
+*
+* error: char array describing error
+*/
 void error(char *error) {
     printf("Error: %s", error);
     exit(1);
 }
 
-
+/*
+* Function: init_server
+* ---------------------
+* initalized a server to accept clients on PORT 
+*   from IP address 127.0.0.1 (same machine)
+*
+* returns: connection file descriptor
+*   waits for connection from client
+*/
 int init_server() {
     // initialize vars
     int connection fd;
@@ -56,5 +72,5 @@ int init_server() {
     if(listen_status) error("server could not listen for client\n");
 
     return accept(server_socket, (struct sockaddr*)&cli_addr, &len);
-
 }
+
