@@ -1,6 +1,11 @@
 #define PORT 4000
 #define BUFFER_SIZE 2048
 
+typedef struct {
+    int connection;
+    int server_socket;
+} Server;
+
 void error(char *error);
 
-void init_server();
+Server init_server();

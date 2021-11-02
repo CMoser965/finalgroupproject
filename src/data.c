@@ -45,12 +45,13 @@ void error(char *error) {
 * initalized a server to accept clients on PORT 
 *   from IP address 127.0.0.1 (same machine)
 *
-* returns: connection file descriptor
-*   waits for connection from client
+* returns: struct Server with connection file descriptor and 
+*   server socket file descriptor waits for connection from client
 */
-int init_server() {
+
+Server init_server() {
     // initialize vars
-    int connection fd;
+    int connfd;
     struct sockaddr_in serv_addr, cli_addr;
     socklen_t len = sizeof(cli_addr);
 
@@ -71,6 +72,18 @@ int init_server() {
     int listen_status = listen(server_socket, 100);
     if(listen_status) error("server could not listen for client\n");
 
-    return accept(server_socket, (struct sockaddr*)&cli_addr, &len);
+    int connfd =  accept(server_socket, (struct sockaddr*)&cli_addr, &len);
+
+    Server serv;
+    serv.connection = connfd;
+    serv.server_socket = server_socket;
+
+    return serv;
 }
 
+void free_server();
+
+int main() {
+    Server serv = init_server();
+    return 0;
+}
