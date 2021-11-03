@@ -1,6 +1,12 @@
 #define PORT 4000
 #define BUFFER_SIZE 2048
 
+#define SELLER 0
+#define CUSTOMER 1
+#define PRODUCT 2
+#define BILLING 3
+#define ORDER 4
+
 typedef struct {
     int connection;
     int server_socket;
@@ -8,21 +14,21 @@ typedef struct {
 
 typedef struct {
     int id;
-    char *name;
+    char name[BUFFER_SIZE];
     int contact_number;
-    char *contact_address;
+    char contact_address[BUFFER_SIZE];
 } SellerInfo;
 
 typedef struct {
-    int id
-    char *name;
+    int id;
+    char name[BUFFER_SIZE];
     int contact_number;
-    char *contact_address;
+    char contact_address[BUFFER_SIZE];
 } CustomerInfo;
 
 typedef struct {
     int id;
-    char *description;
+    char description[BUFFER_SIZE];
     int seller_id;
     int quantity;
     int price;
@@ -31,7 +37,7 @@ typedef struct {
 typedef struct {
     int id;
     int customer_id;
-    char *address;
+    char address[BUFFER_SIZE];
     int price;
 } BillingInfo;
 
@@ -39,11 +45,9 @@ typedef struct {
     int id;
     int product_id;
     int quantity;
-    char *address;
+    char address[BUFFER_SIZE];
     int price;
 } CustomerOrder;
-
-
 
 void error(char *error);
 

@@ -105,18 +105,48 @@ int init_client(int port) {
     return network_socket;
 }
 
-int transmit(int connection, char * buffer, char *message) {
-    sprintf(buffer, message);
-    write(connection, buffer, BUFFER_SIZE) {
-        bzero(buffer, BUFFER_SIZE);
-        if(flag) {
-            read(connection, buffer, BUFFER_SIZE);
-        }
+int transmit(int connection, CustomerInfo information, int type) {
+    return write(connection, information, sizeof(information));
+}
+
+CustomerInfo receive(int connection, int type) {
+    int info_size;
+    switch(type) {
+        case SELLER:
+            info_size = sizeof(SellerInfo);
+            break;
+        case CUSTOMER:
+            info_size = sizeof(CustomerInfo);
+            break;
+        case PRODUCT:
+            info_size = sizeof(ProductInfo);
+            break;
+        case BILLING:
+            info_size = sizeof(BillingInfo);
+            break;
+        case ORDER:
+            info_size = sizeof(CustomerOrder);
     }
+    CustomerInfo buffer;
+    read(connection, buffer, info_size);
+    return buffer;
+}
+
+int sendCustomerInfo(int connection, char * buffer, ) {
+
+
+
+    return 0;
 }
 
 int main() {
     Server serv = init_server();
-    write(serv.connection, "Hello, client!", BUFFER_SIZE);
+    CustomerInfo johnsmith;
+    
+
+    transmit(serv.connection, johnsmith, CUSTOMER);
+
+    close(serv.connection);
+
     return 0;
 }
