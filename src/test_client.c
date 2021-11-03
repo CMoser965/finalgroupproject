@@ -26,10 +26,9 @@
 
 #include "include/data.h"
 
-int main() {
-    int cliconn = init_client(PORT);
-    char buffer[BUFFER_SIZE];
-    read(cliconn, buffer, BUFFER_SIZE);
-    printf("Server said %s\n", buffer);
-    return 0;
-}
+// int main() {
+//     int cliconn = init_client(PORT);
+//     CustomerInfo customer = (CustomerInfo)receive(cliconn, CUSTOMER);
+//     printf("Name: %s\nID: $d\nPhone #: %d\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
+//     return 0;
+// }
