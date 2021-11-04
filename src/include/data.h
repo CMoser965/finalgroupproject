@@ -49,8 +49,17 @@ typedef struct {
     int price;
 } CustomerOrder;
 
+typedef CustomerInfo customer_information_t;
+typedef SellerInfo seller_information_t;
+typedef ProductInfo product_information_t;
+typedef BillingInfo billing_information_t;
+typedef CustomerOrder customer_order_t;
+
 void error(char *error);
 
 Server init_server();
 
 int init_client();
+
+void sendCustomerInfo(int connection, CustomerInfo customer);
+CustomerInfo recvCustomerInfo(int connection);

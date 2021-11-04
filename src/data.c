@@ -105,48 +105,36 @@ int init_client(int port) {
     return network_socket;
 }
 
-int transmit(int connection, CustomerInfo information, int type) {
-    return write(connection, information, sizeof(information));
+void send_customer_info(int connection, customer_information_t customer) {
+    if(write(connection, &customer, sizeof(customer_information_t)) < 0)
+        error("Customer information could not be sent.\n");
 }
 
-CustomerInfo receive(int connection, int type) {
-    int info_size;
-    switch(type) {
-        case SELLER:
-            info_size = sizeof(SellerInfo);
-            break;
-        case CUSTOMER:
-            info_size = sizeof(CustomerInfo);
-            break;
-        case PRODUCT:
-            info_size = sizeof(ProductInfo);
-            break;
-        case BILLING:
-            info_size = sizeof(BillingInfo);
-            break;
-        case ORDER:
-            info_size = sizeof(CustomerOrder);
-    }
-    CustomerInfo buffer;
-    read(connection, buffer, info_size);
-    return buffer;
+customer_information_t recv_customer_info(int connection) {
+    char buffer[sizeof(customer_information_t)];
+    if(recv(connection, buffer, sizeof(customer_information_t), 0) < 0)
+    error("Could not read customer info.\n");
+
+    customer_information_t *temp = (customer_information_t*)&buffer;
+
+    return *temp;
 }
 
-int sendCustomerInfo(int connection, char * buffer, ) {
-
-
-
-    return 0;
+void send_seller_info(int connection, seller_information_t seller) {
+    if(write(connection, &seller, sizeof(seller_information_t)) < 0) error("Seller information could not be sent.\n");
 }
 
 int main() {
     Server serv = init_server();
-    CustomerInfo johnsmith;
-    
+    customer_information_t customer = {.contact_address = "123 Sesame Street", .contact_number = 123, .id = 1, .name = "John Smith"};
+    printf("Name: %s\nID: %d\nPhone #: %d\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
 
-    transmit(serv.connection, johnsmith, CUSTOMER);
+    send_customer_info(serv.connection, customer);
+
+    char *buffer = (char*)&customer;
+    write(serv.connection, buffer, sizeof(customer_information_t));
 
     close(serv.connection);
-
+    close(serv.server_socket);
     return 0;
 }

@@ -26,9 +26,11 @@
 
 #include "include/data.h"
 
-// int main() {
-//     int cliconn = init_client(PORT);
-//     CustomerInfo customer = (CustomerInfo)receive(cliconn, CUSTOMER);
-//     printf("Name: %s\nID: $d\nPhone #: %d\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
-//     return 0;
-// }
+int main() {
+    int cliconn = init_client(PORT);
+    CustomerInfo customer = recvCustomerInfo(cliconn);
+    printf("Name: %s\nID: %d\nPhone #: %d\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
+
+    close(cliconn);
+    return 0;
+}
