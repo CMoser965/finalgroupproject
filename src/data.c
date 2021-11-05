@@ -124,6 +124,54 @@ void send_seller_info(int connection, seller_information_t seller) {
     if(write(connection, &seller, sizeof(seller_information_t)) < 0) error("Seller information could not be sent.\n");
 }
 
+product_information_t recv_product_info(int connection) {
+    char buffer[sizeof(seller_information_t)];
+    if(recv(connection, buffer, sizeof(seller_information_t), 0) < 0) error("Could not read seller info.\n");
+
+    seller_information_t *temp = (customer_information_t*)&buffer;
+
+    return *temp;
+}
+
+void send_product_info(int connection, product_information_t seller) {
+    if(write(connection, &seller, sizeof(product_information_t)) < 0) error("Seller information could not be sent.\n");
+}
+
+product_information_t recv_product_info(int connection) {
+    char buffer[sizeof(product_information_t)];
+    if(recv(connection, buffer, sizeof(product_information_t), 0) < 0) error("Could not read seller info.\n");
+
+    product_information_t *temp = (product_information_t*)&buffer;
+
+    return *temp;
+}
+
+void send_billing_info(int connection, billing_information_t seller) {
+    if(write(connection, &seller, sizeof(billing_information_t)) < 0) error("Seller information could not be sent.\n");
+}
+
+billing_information_t recv_billing_info(int connection) {
+    char buffer[sizeof(billing_information_t)];
+    if(recv(connection, buffer, sizeof(billing_information_t), 0) < 0) error("Could not read seller info.\n");
+
+    billing_information_t *temp = (billing_information_t*)&buffer;
+
+    return *temp;
+}
+
+void send_customer_order(int connection, customer_order_t seller) {
+    if(write(connection, &seller, sizeof(customer_order_t)) < 0) error("Seller information could not be sent.\n");
+}
+
+customer_order_t recv_customer_order(int connection) {
+    char buffer[sizeof(customer_order_t)];
+    if(recv(connection, buffer, sizeof(customer_order_t), 0) < 0) error("Could not read seller info.\n");
+
+    customer_order_t *temp = (customer_order_t*)&buffer;
+
+    return *temp;
+}
+
 int main() {
     Server serv = init_server();
     customer_information_t customer = {.contact_address = "123 Sesame Street", .contact_number = 123, .id = 1, .name = "John Smith"};

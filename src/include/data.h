@@ -61,5 +61,13 @@ Server init_server();
 
 int init_client();
 
-void sendCustomerInfo(int connection, CustomerInfo customer);
-CustomerInfo recvCustomerInfo(int connection);
+void send_customer_info(int connection, customer_information_t customer);
+customer_information_t recv_customer_info(int connection);
+void send_seller_info(int connection, seller_information_t seller);
+seller_information_t recv_seller_info(int connection);
+void send_product_info(int connection, product_information_t seller);
+product_information_t recv_product_info(int connection);
+void send_billing_info(int connection, seller_information_t seller);
+billing_information_t recv_billing_info(int connection);
+void send_customer_order(int connection, seller_information_t seller);
+customer_order_t recv_customer_order(int connection);
