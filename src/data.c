@@ -105,6 +105,14 @@ int init_client(int port) {
     return network_socket;
 }
 
+/*
+* Function: send_customer_info
+* ----------------------------
+* sends struct of customer information to network socket
+* 
+* connection: file descriptor of network socket
+* customer: struct to be sent
+*/
 void send_customer_info(int connection, customer_information_t customer) {
     if(write(connection, &customer, sizeof(customer_information_t)) < 0)
         error("Customer information could not be sent.\n");
@@ -120,21 +128,37 @@ customer_information_t recv_customer_info(int connection) {
     return *temp;
 }
 
+/*
+* Function: send_seller_info
+* ----------------------------
+* sends struct of seller information to network socket
+* 
+* connection: file descriptor of network socket
+* seller: struct to be sent
+*/
 void send_seller_info(int connection, seller_information_t seller) {
     if(write(connection, &seller, sizeof(seller_information_t)) < 0) error("Seller information could not be sent.\n");
 }
 
-product_information_t recv_product_info(int connection) {
+seller_information_t recv_seller_info(int connection) {
     char buffer[sizeof(seller_information_t)];
     if(recv(connection, buffer, sizeof(seller_information_t), 0) < 0) error("Could not read seller info.\n");
 
-    seller_information_t *temp = (customer_information_t*)&buffer;
+    seller_information_t *temp = (seller_information_t*)&buffer;
 
     return *temp;
 }
 
-void send_product_info(int connection, product_information_t seller) {
-    if(write(connection, &seller, sizeof(product_information_t)) < 0) error("Seller information could not be sent.\n");
+/*
+* Function: send_product_info
+* ----------------------------
+* sends struct of product information to network socket
+* 
+* connection: file descriptor of network socket
+* product: struct to be sent
+*/
+void send_product_info(int connection, product_information_t product) {
+    if(write(connection, &product, sizeof(product_information_t)) < 0) error("Seller information could not be sent.\n");
 }
 
 product_information_t recv_product_info(int connection) {
@@ -146,8 +170,16 @@ product_information_t recv_product_info(int connection) {
     return *temp;
 }
 
-void send_billing_info(int connection, billing_information_t seller) {
-    if(write(connection, &seller, sizeof(billing_information_t)) < 0) error("Seller information could not be sent.\n");
+/*
+* Function: send_billing_info
+* ----------------------------
+* sends struct of billing information to network socket
+* 
+* connection: file descriptor of network socket
+* billing: struct to be sent
+*/
+void send_billing_info(int connection, billing_information_t billing) {
+    if(write(connection, &billing, sizeof(billing_information_t)) < 0) error("Seller information could not be sent.\n");
 }
 
 billing_information_t recv_billing_info(int connection) {
@@ -159,8 +191,16 @@ billing_information_t recv_billing_info(int connection) {
     return *temp;
 }
 
-void send_customer_order(int connection, customer_order_t seller) {
-    if(write(connection, &seller, sizeof(customer_order_t)) < 0) error("Seller information could not be sent.\n");
+/*
+* Function: send_customer_order
+* ----------------------------
+* sends struct of order information to network socket
+* 
+* connection: file descriptor of network socket
+* order: struct to be sent
+*/
+void send_customer_order(int connection, customer_order_t order) {
+    if(write(connection, &order, sizeof(customer_order_t)) < 0) error("Seller information could not be sent.\n");
 }
 
 customer_order_t recv_customer_order(int connection) {
@@ -172,17 +212,72 @@ customer_order_t recv_customer_order(int connection) {
     return *temp;
 }
 
+void write_customer_info(customer_information_t customer) {
+    FILE *data;
+    data = fopen("./data/customerInformation.txt", "a");
+    if(data == NULL) error("file cannot be opened\n");
+    char buffer[sizeof(customer_information_t)];
+    sprintf(buffer, "%s\t%s\t%d\t%s\n", customer.contact_address, customer.contact_number, customer.id, customer.name);
+    fputs(buffer, data);
+    fclose(data);
+}
+
+customer_information_t read_customer_info() {
+    customer_information_t customer;
+    FILE *data;
+    char buffer[sizeof(customer_information_t)];
+    data = fopen("./data/customerInformation.txt", "r");
+    fgets(buffer, sizeof(customer_information_t), (FILE*)data);
+    printf("%s\n", buffer);
+    int max1, max2, max3;
+    int i, j;
+    for(i = 0; buffer[i] !='\0'; i++) {
+        for(j = 0; buffer[j] != '\t'; j++) {
+            switch(i) {
+                case 0: ;
+                    printf("i: %d; j: %d; buffer[i+j]: %c; buffer[j+i*j]: %c\n", i, j, buffer[j], buffer[j+i]);
+                    customer.contact_address[j] = buffer[j+j*i];
+                    if(buffer[j+1] == '\t') max1 = j;
+                    break;
+                case 1: ;
+                    printf("i: %d; j: %d; buffer[i+j]: %c; buffer[j+i*j]: %c\n", i, j, buffer[j], buffer[j+max1*j]);
+                    customer.contact_number[j] = buffer[j+max1*i];
+                    if(buffer[j+max1*i+1] == '\t') max2 = j;
+                    break;
+                case 2: ;
+                    printf("i: %d; j: %d; buffer[i+j]: %c; buffer[j+i*j]: %c\n", i, j, buffer[j], buffer[j+i*j]);
+                    char *string_extractor;
+                    string_extractor = &buffer[j+max2*i];
+                    customer.id = atoi(string_extractor);
+                    break;
+                case 3: ;
+                    printf("i: %d; j: %d; buffer[i+j]: %c; buffer[j+i*j]: %c\n", i, j, buffer[j+i], buffer[j+i*j]);
+                    customer.name[j] = buffer[j+i];
+                printf("%d\n", i);
+            }
+        }
+    }
+
+    return customer;
+}
+
 int main() {
-    Server serv = init_server();
-    customer_information_t customer = {.contact_address = "123 Sesame Street", .contact_number = 123, .id = 1, .name = "John Smith"};
-    printf("Name: %s\nID: %d\nPhone #: %d\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
+    // Server serv = init_server();
+    customer_information_t customer = {.contact_address = "123 Sesame Street", .contact_number = "1-800-420-6969", .id = 1, .name = "John Smith"};
+    
+    printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
 
-    send_customer_info(serv.connection, customer);
+    write_customer_info(customer);
+    customer_information_t new_customer = read_customer_info();
+    printf("Retrieved: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", new_customer.name, new_customer.id, new_customer.contact_number, new_customer.contact_address);
 
-    char *buffer = (char*)&customer;
-    write(serv.connection, buffer, sizeof(customer_information_t));
 
-    close(serv.connection);
-    close(serv.server_socket);
+    // send_customer_info(serv.connection, customer);
+
+    // char *buffer = (char*)&customer;
+    // write(serv.connection, buffer, sizeof(customer_information_t));
+
+    // close(serv.connection);
+    // close(serv.server_socket);
     return 0;
 }
