@@ -21,7 +21,7 @@
 #define BUFFER_SIZE 2048
 
 
-
+// These functions are based on the send and recv functions that Christian has made so communication is clear between the servers and clients
 void send_customer_info(int connection, CustomerInfo customer) {
 	if (write(connection, &customer, sizeof(CustomerInfo)) < 0) {
 		printf("Information could not be sent.\n");
@@ -77,13 +77,9 @@ ProductInfo recv_product_info(int connection) {
 	return *tmp;
 }
 
+int connect_to_data_server(int data_socket) {
 
-int main() {
-	// socket id for connecting this server to the data server
-	int data_socket;
-	// The code below creates the connection for this server to the data server
-	
-    data_socket = socket(AF_INET, SOCK_STREAM, 0);
+	data_socket = socket(AF_INET, SOCK_STREAM, 0);
     if(data_socket < 0) {
         printf("!!!Fatal error: socket cannot be created");
         exit(1);
@@ -103,7 +99,17 @@ int main() {
         exit(1);
     }
 	
+	return data_socket;
 	
+
+}
+}
+int main() {
+	// socket id for connecting this server to the data server
+	int data_socket;
+	// The code below creates the connection for this server to the data server
+	data_socket = connect_to_data_server(data_socket);
+    
 	
 	
 	// The code below is for establishing a connection between the multiple clients and this server
