@@ -415,6 +415,10 @@ int main() {
     write_seller_info(seller);
     seller_information_t new_seller = read_seller_info();
     printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", new_seller.name, new_seller.id, new_seller.contact_number, new_seller.contact_address);
+
+    printf("Product: %d\nDescription: %s\n", product.id, product.description);
+    write_product_info(product);
+    product_information_t new_product = read_product_info();
     
     
     printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
