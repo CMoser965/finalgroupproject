@@ -228,42 +228,194 @@ customer_information_t read_customer_info() {
     char buffer[sizeof(customer_information_t)];
     data = fopen("./data/customerInformation.txt", "r");
     fgets(buffer, sizeof(customer_information_t), (FILE*)data);
-    printf("%s\n", buffer);
-    int max1, max2, max3;
-    int i, j;
-    for(i = 0; buffer[i] !='\0'; i++) {
-        for(j = 0; buffer[j] != '\t'; j++) {
-            switch(i) {
-                case 0: ;
-                    printf("i: %d; j: %d; buffer[i+j]: %c; buffer[j+i*j]: %c\n", i, j, buffer[j], buffer[j+i]);
-                    customer.contact_address[j] = buffer[j+j*i];
-                    if(buffer[j+1] == '\t') max1 = j;
-                    break;
-                case 1: ;
-                    printf("i: %d; j: %d; buffer[i+j]: %c; buffer[j+i*j]: %c\n", i, j, buffer[j], buffer[j+max1*j]);
-                    customer.contact_number[j] = buffer[j+max1*i];
-                    if(buffer[j+max1*i+1] == '\t') max2 = j;
-                    break;
-                case 2: ;
-                    printf("i: %d; j: %d; buffer[i+j]: %c; buffer[j+i*j]: %c\n", i, j, buffer[j], buffer[j+i*j]);
-                    char *string_extractor;
-                    string_extractor = &buffer[j+max2*i];
-                    customer.id = atoi(string_extractor);
-                    break;
-                case 3: ;
-                    printf("i: %d; j: %d; buffer[i+j]: %c; buffer[j+i*j]: %c\n", i, j, buffer[j+i], buffer[j+i*j]);
-                    customer.name[j] = buffer[j+i];
-                printf("%d\n", i);
-            }
+    char *temp = strtok(buffer, "\t");
+    for(int i = 0; temp != NULL; i++) {
+        switch(i) {
+            case 0: // address first
+                strcpy(customer.contact_address, temp);
+                break;
+            case 1: // phone number 
+                strcpy(customer.contact_number, temp);
+                break;
+            case 2: // id number
+                customer.id = atoi(temp);
+                break;
+            case 3: 
+                strcpy(customer.name, temp);
         }
+        temp = strtok(NULL, "\t");
+    }
+    return customer;
+}
+
+void write_seller_info(seller_information_t seller) {
+    FILE *data;
+    data = fopen("./data/sellerInformation.txt", "a");
+    if(data == NULL) error("file cannot be opened\n");
+    char buffer[sizeof(seller_information_t)];
+    sprintf(buffer, "%d\t%s\t%s\t%s\n", seller.id, seller.name, seller.contact_number, seller.contact_address);
+    fputs(buffer, data);
+    fclose(data);
+}
+
+seller_information_t read_seller_info() {
+    seller_information_t seller;
+    FILE *data;
+    char buffer[sizeof(seller_information_t)];
+    data = fopen("./data/sellerInformation.txt", "r");
+    fgets(buffer, sizeof(seller_information_t), (FILE*)data);
+    char *temp = strtok(buffer, "\t");
+    for(int i = 0; temp != NULL; i++) {
+        switch(i) {
+            case 0:
+                seller.id = atoi(temp);
+                break;
+            case 1:
+                strcpy(seller.name, temp);
+                break;
+            case 2:
+                strcpy(seller.contact_number, temp);
+                break;
+            case 3:
+                strcpy(seller.contact_address, temp);
+        }
+        temp = strtok(NULL, "\t");
+    }
+    return seller;
+}
+
+void write_product_info(product_information_t product) {
+    FILE *data;
+    data = fopen("./data/productInformation.txt", "r");
+    if(data == NULL) error("file cannot be opened\n");
+    char buffer[sizeof(product_information_t)];
+    sprintf(buffer, "%d\t%s\t%d\t%d\t%d\n", product.id, product.description, product.seller_id, product.quantity, product.price);
+    fputs(buffer, data);
+    fclose(data);
+}
+
+product_information_t read_product_info() {
+    product_information_t product;
+    FILE *data;
+    data = fopen("./data/productInformation.txt", "r");
+    if(data == NULL) error("file cannot be opened\n");
+    char buffer[sizeof(product_information_t)];
+    fgets(buffer, sizeof(product_information_t), (FILE*)data);
+    char *temp = strtok(buffer, "\t");
+    for(int i = 0; temp != NULL; i++) {
+        switch (i) {
+            case 0:
+                product.id = atoi(temp);
+                break;
+            case 1:
+                strcpy(product.description, temp);
+                break;
+            case 2:
+                product.seller_id = atoi(temp);
+                break;
+            case 3:
+                product.quantity = atoi(temp);
+                break;
+            case 4:
+                product.price = atoi(temp);
+        }
+        temp = strtok(NULL, "\t");
+    }
+    return product;
     }
 
-    return customer;
+void write_billing_info(billing_information_t billing) {
+    FILE *data;
+    data = fopen("./data/billingInformation.txt", "a");
+    if(data == NULL) error("file cannot be opened\n");
+    char buffer[sizeof(billing_information_t)];
+    sprintf("%d\t%d\t%s\t%d\t\n", billing.id, billing.customer_id, billing.address, billing.price);
+    fputs(buffer, data);
+    fclose(data);
+}
+
+billing_information_t read_billing_info() {
+    billing_information_t billing;
+    FILE *data;
+    data = fopen("./data/billingInformation.txt", "r");
+    if(data == NULL) error("file cannot be opened\n");
+    char buffer[sizeof(billing_information_t)];
+    fgets(buffer, sizeof(billing_information_t), (FILE*)data);
+    char *temp = strtok(buffer, '\t');
+    int i;
+    for(i = 0; i < 4; i++) {
+        switch(i) {
+            case 0: // id
+                billing.id = atoi(temp);
+                break;
+            case 1: // customer_id
+                billing.customer_id = atoi(temp);
+                break;
+            case 2: // address
+                strcpy(billing.address, temp);
+                break;
+            case 3: // price
+                billing.price = atoi(temp);
+        }
+        temp = strtok(NULL, '\t');
+    }
+    return billing;
+}
+
+void write_order_info(customer_order_t order) {
+    FILE *data;
+    data = fopen("./data/orderInformation.txt", "a");
+    if(data == NULL) error("file cannot be opened\n");
+    char buffer[sizeof(customer_order_t)];
+    sprintf("%d\t%d\t%d\t%s\t%d\t\n", order.id, order.product_id, order.quantity, order.address, order.price);
+    fputs(buffer, data);
+    close(data);
+}
+
+customer_order_t read_order_info() {
+    customer_order_t order;
+    FILE *data;
+    data = fopen("./data/orderInformation.txt", "r");
+    if(data == NULL) error("file cannot be opened\n");
+    char buffer[sizeof(customer_order_t)];
+    fgets(buffer, sizeof(customer_order_t), (FILE*)data);
+    char *temp = strtok(buffer, '\t');
+    int i;
+    for(i = 0; i < 5; i++) {
+        switch(i) {
+            case 0: // id
+                order.id = atoi(temp);
+                break;
+            case 1: // product_id
+                order.product_id = atoi(temp);
+                break;
+            case 2: // quantity
+                order.quantity = atoi(temp);
+                break;
+            case 3: // addr
+                strcpy(order.address, temp);
+                break;
+            case 4: // price
+                order.price = atoi(temp);
+        }
+        temp = strtok(NULL, '\t');
+    }
+    return order;
 }
 
 int main() {
     // Server serv = init_server();
     customer_information_t customer = {.contact_address = "123 Sesame Street", .contact_number = "1-800-420-6969", .id = 1, .name = "John Smith"};
+    seller_information_t seller = {.contact_number = "1-800-666-0000", .contact_address = "601 Devel Ln.", .name = "Mr. Bidness Man", .id = 1};
+    product_information_t product = {.id = 1, .description="Miracle Cure cures your skin of all herpes.", .seller_id = seller.id, .quantity = 200, .price = 100};
+    billing_information_t billing = {.id = 1, .customer_id = 1, .address = customer.contact_address, billing.price = product.price};
+    customer_order_t order = {.id = 1, .product_id = product.id, .quantity = 1, .address = customer.contact_address, .price = product.price};
+
+    printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", seller.name, seller.id, seller.contact_number, seller.contact_address);
+    write_seller_info(seller);
+    seller_information_t new_seller = read_seller_info();
+    printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", new_seller.name, new_seller.id, new_seller.contact_number, new_seller.contact_address);
+    
     
     printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
 

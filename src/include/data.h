@@ -15,7 +15,7 @@ typedef struct {
 typedef struct {
     int id;
     char name[BUFFER_SIZE];
-    int contact_number;
+    char contact_number[BUFFER_SIZE];
     char contact_address[BUFFER_SIZE];
 } SellerInfo;
 
@@ -71,3 +71,14 @@ void send_billing_info(int connection, billing_information_t billing);
 billing_information_t recv_billing_info(int connection);
 void send_customer_order(int connection, customer_order_t order);
 customer_order_t recv_customer_order(int connection);
+
+void write_customer_info(customer_information_t customer);
+customer_information_t read_customer_info();
+void write_seller_info(seller_information_t seller);
+seller_information_t read_seller_info();
+void write_product_info(product_information_t product);
+product_information_t read_product_info();
+void write_billing_info(billing_information_t billing);
+billing_information_t read_billing_info();
+void write_order_info(customer_order_t order);
+customer_order_t read_order_info();
