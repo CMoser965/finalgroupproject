@@ -1,7 +1,13 @@
+/*
+Created by: Roper Freeman-Vivanco
+Description: This is the file for the server that is the intermediate program that communicates
+					information between the data server and the client.
+*/
+
+
 #define _GNU_SOURCE
 #define MAXLINE 1024
 
-#define PORT 4000
 #define SA struct sockaddr
 #define MAX_CLI 100
 #include <arpa/inet.h>
@@ -16,102 +22,20 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 
-#include "data.h"
+#include "FinalServer.h"
 
 #define BUFFER_SIZE 2048
 
 
-// These functions are based on the send and recv functions that Christian has made so communication is clear between the servers and clients
-void send_customer_info(int connection, CustomerInfo customer) {
-	if (write(connection, &customer, sizeof(CustomerInfo)) < 0) {
-		printf("Information could not be sent.\n");
-	}
-}
+int port = 4001;
 
-CustomerInfo recv_customer_info(int connection) {
-	char buffer[sizeof(CustomerInfo)];
-	
-	if(recv(connection, buffer, sizeof(CustomerInfo), 0) < 0) {\
-		printf("Information could not be read.\n");
-	}
-	
-	CustomerInfo *tmp = (CustomerInfo*)&buffer;
-	
-	return *tmp;
-	
-}
 
-void send_seller_info(int connection, SellerInfo seller) {
-	if (write(connection, &seller, sizeof(SellerInfo)) < 0) {
-		printf("Information could not be sent.\n");
-	}
-}
-
-SellerInfo recv_seller_info(int connection) {
-	char buffer[sizeof(SellerInfo)];
-	
-	if(recv(connection, buffer, sizeof(SellerInfo), 0) < 0) {\
-		printf("Information could not be read.\n");
-	}
-	
-	SellerInfo *tmp = (SellerInfo*)&buffer;
-	
-	return *tmp;
-}
-
-void send_product_info(int connection, ProductInfo product) {
-	if (write(connection, &product, sizeof(ProductInfo)) < 0) {
-		printf("Information could not be sent.\n");
-	}
-}
-
-ProductInfo recv_product_info(int connection) {
-	char buffer[sizeof(ProductInfo)];
-	
-	if(recv(connection, buffer, sizeof(ProductInfo), 0) < 0) {\
-		printf("Information could not be read.\n");
-	}
-	
-	ProductInfo *tmp = (ProductInfo*)&buffer;
-	
-	return *tmp;
-}
-
-int connect_to_data_server(int data_socket) {
-
-	data_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if(data_socket < 0) {
-        printf("!!!Fatal error: socket cannot be created");
-        exit(1);
-    }
-
-    // specify socket address
-    struct sockaddr_in data_address;
-    data_address.sin_family = AF_INET;
-    data_address.sin_port = htons(4001);
-    data_address.sin_addr.s_addr = INADDR_ANY;
-    
-    // connects to server and saves connection error message
-    int connection_status;
-    connection_status = connect(data_socket, (struct sockaddr *) &data_address, sizeof(data_address));
-    if(connection_status == -1) {
-        printf("!!!Fatal Error: Socket cannot connect\n");
-        exit(1);
-    }
-	
-	return data_socket;
-	
-
-}
-}
 int main() {
 	// socket id for connecting this server to the data server
 	int data_socket;
 	// The code below creates the connection for this server to the data server
 	data_socket = connect_to_data_server(data_socket);
     
-	
-	
 	// The code below is for establishing a connection between the multiple clients and this server
 	int socketfd, retval;  // used for the accept() function
 	int newSock;
@@ -119,7 +43,6 @@ int main() {
 	pid_t childpid; // used for subproccesses
 	
 	socklen_t addrSize;
-	
 	struct sockaddr_in serverAd, clientAd;  // initializing the server and client address holder
 	char buffer[BUFFER_SIZE];
 	
@@ -130,41 +53,36 @@ int main() {
 	} else {
 		printf("Socket created successfully.\n");
 	}
-	
-	
+		
 	memset(&serverAd, '\0', sizeof(serverAd));
-	
 	serverAd.sin_family = AF_INET;
-	
-	serverAd.sin_port = htons(PORT);
-	
 	serverAd.sin_addr.s_addr = inet_addr("127.0.0.1");
-	
-	// binding the socket to the address
-	retval = bind(socketfd, (struct sockaddr*)&serverAd, sizeof(serverAd));
-	
-	if ( retval < 0) {
-		error("Error: Socket could not be binded.\n");
-	} else {
-		printf("Socket binding was successful.\n");
+		
+	while(1) {
+		// binding the socket to the address and changing the port, if it is taken, until a valid port is found and binded
+		serverAd.sin_port = htons(port);
+		retval = bind(socketfd, (struct sockaddr*)&serverAd, sizeof(serverAd));
+		
+		if ( retval < 0) {
+			printf("Error: Socket could not be binded to port %d. Trying another port.\n", port);
+			port = port + 1;
+		} else {
+			printf("Socket binding was successful.\n");
+			break;
+		}
 	}
 	
 	// Listening for connections
-	
 	if (listen(socketfd, MAX_CLI) == 0) {
-		printf("Server is now listening for connections.\n");
+		printf("Server is now listening for connections on port %d.\n", port);
 	} else {
 		error("Error: Server was not able to listen to client.\n");
 	}
 	
-	
-	
 	// indefinite loop for listening
-	
 	while(1) {
 		
 		newSock = accept(socketfd, (struct sockaddr*)&clientAd, &addrSize);
-
 		if (newSock < 0) {
 			error("Error: The client could not be accepted.\n");
 		} 
@@ -175,34 +93,52 @@ int main() {
 
 			while(1) {
 
+				// Recieve the flag from the client so the server can determine what to do next
 				recv(newSock, buffer, BUFFER_SIZE, 0);
-				
-				if (strcmp(buffer, "0") == 0) {
+				if (strcmp(buffer, "00") == 0) {
 					// This if statement case is for seller related actions
 					SellerInfo seller;
-					seller = recv_seller_info(newSock);
-					send_seller_info(data_socket, seller);
+					seller = recv_seller_info(newSock); // Get the seller info from client
 					
-				} else if (strcmp(buffer, "1") == 0) {
+					send_new_seller(data_socket, seller); // Sending the new seller info to the data server
+					
+					bzero(buffer, BUFFER_SIZE);
+					/*
+					if (recv(data_socket, buffer, BUFFER_SIZE, 0) < 0) {
+						printf("Error recieving message.\n");
+					} else {
+						printf("Server: %s\n", buffer);
+					}
+					*/
+						
+				} else if (strcmp(buffer, "10") == 0) {
 					// This if statement case is for customer related actions
 					CustomerInfo customer;
 					customer = recv_customer_info(newSock);
-					send_customer_info(data_socket, customer);
+					send_new_customer(data_socket, customer);
 					
-				} else if (strcmp(buffer, "2") == 0) {
+				} else if (strcmp(buffer, "20") == 0) {
 					// This if statement case is for product related actions
 					ProductInfo product;
 					product = recv_product_info(data_socket);
-					send_product_info(newSock, product);
+					send_new_product(newSock, product);
 					
-				} else if (strcmp(buffer, "3") == 0) {
+				} else if (strcmp(buffer, "30") == 0) {
 					// This if statement case is for billing related actions
 					
 					
-				} else if (strcmp(buffer, "4") == 0) {
+				} else if (strcmp(buffer, "41") == 0) {
 					// This if statement case is for order related actions
-					
-					
+					char id[BUFFER_SIZE];
+					// This is where the server recieves the ID of the customer order they want to view
+					if (recv(newSock, buffer, BUFFER_SIZE, 0) < 0) {
+						printf("Error recieving message.\n");
+					} 
+					strcpy(id, &buffer); // copying the ID recieved from the client into the id char array
+					bzero(buffer, BUFFER_SIZE);
+					CustomerOrder order;
+					order = recv_order_info(data_socket, id); // Getting the order info from the data server
+					send_order_info(newSock, order); // sending the order info to the client 
 				} 
 				
 					
