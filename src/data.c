@@ -329,7 +329,7 @@ void write_billing_info(billing_information_t billing) {
     data = fopen("./data/billingInformation.txt", "a");
     if(data == NULL) error("file cannot be opened\n");
     char buffer[sizeof(billing_information_t)];
-    sprintf("%d\t%d\t%s\t%d\t\n", billing.id, billing.customer_id, billing.address, billing.price);
+    sprintf(buffer, "%d\t%d\t%s\t%d\t\n", billing.id, billing.customer_id, billing.address, billing.price);
     fputs(buffer, data);
     fclose(data);
 }
@@ -341,7 +341,7 @@ billing_information_t read_billing_info() {
     if(data == NULL) error("file cannot be opened\n");
     char buffer[sizeof(billing_information_t)];
     fgets(buffer, sizeof(billing_information_t), (FILE*)data);
-    char *temp = strtok(buffer, '\t');
+    char *temp = strtok(buffer, "\t");
     int i;
     for(i = 0; i < 4; i++) {
         switch(i) {
@@ -357,7 +357,7 @@ billing_information_t read_billing_info() {
             case 3: // price
                 billing.price = atoi(temp);
         }
-        temp = strtok(NULL, '\t');
+        temp = strtok(NULL, "\t");
     }
     return billing;
 }
@@ -367,20 +367,28 @@ void write_order_info(customer_order_t order) {
     data = fopen("./data/orderInformation.txt", "a");
     if(data == NULL) error("file cannot be opened\n");
     char buffer[sizeof(customer_order_t)];
-    sprintf("%d\t%d\t%d\t%s\t%d\t\n", order.id, order.product_id, order.quantity, order.address, order.price);
+    sprintf(buffer, "%d\t%d\t%d\t%s\t%d\t\n", order.id, order.product_id, order.quantity, order.address, order.price);
     fputs(buffer, data);
-    close(data);
+    fclose(data);
 }
 
-customer_order_t read_order_info() {
+customer_order_t read_order_info(int index) {
     customer_order_t order;
+    printf("line 277");
     FILE *data;
+    printf("Line 378");
     data = fopen("./data/orderInformation.txt", "r");
     if(data == NULL) error("file cannot be opened\n");
-    char buffer[sizeof(customer_order_t)];
-    fgets(buffer, sizeof(customer_order_t), (FILE*)data);
-    char *temp = strtok(buffer, '\t');
+    printf("Line 380");
+    char buffer[index*sizeof(customer_order_t)];
+    fgets(buffer, index*sizeof(customer_order_t), (FILE*)data);
+    printf("Line 382");
+    char *short_buffer = strtok(buffer, "\n");
     int i;
+    for(i = 0; i < index; i++) {
+        short_buffer = strtok(NULL, "\n");
+    }
+    char *temp = strtok(short_buffer, "\t");
     for(i = 0; i < 5; i++) {
         switch(i) {
             case 0: // id
@@ -398,7 +406,7 @@ customer_order_t read_order_info() {
             case 4: // price
                 order.price = atoi(temp);
         }
-        temp = strtok(NULL, '\t');
+        temp = strtok(NULL, "\t");
     }
     return order;
 }
@@ -408,8 +416,9 @@ int main() {
     customer_information_t customer = {.contact_address = "123 Sesame Street", .contact_number = "1-800-420-6969", .id = 1, .name = "John Smith"};
     seller_information_t seller = {.contact_number = "1-800-666-0000", .contact_address = "601 Devel Ln.", .name = "Mr. Bidness Man", .id = 1};
     product_information_t product = {.id = 1, .description="Miracle Cure cures your skin of all herpes.", .seller_id = seller.id, .quantity = 200, .price = 100};
-    billing_information_t billing = {.id = 1, .customer_id = 1, .address = customer.contact_address, billing.price = product.price};
-    customer_order_t order = {.id = 1, .product_id = product.id, .quantity = 1, .address = customer.contact_address, .price = product.price};
+    billing_information_t billing = {.id = 1, .customer_id = 1, .address = *customer.contact_address, billing.price = product.price};
+    customer_order_t order = {.id = 1, .product_id = product.id, .quantity = 1, .address = *customer.contact_address, .price = product.price};
+    customer_order_t order2 = {.id = 2, .product_id = product.id, .quantity = 2, .address = *customer.contact_address, .price = product.price};
 
     printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", seller.name, seller.id, seller.contact_number, seller.contact_address);
     write_seller_info(seller);
@@ -425,8 +434,16 @@ int main() {
 
     write_customer_info(customer);
     customer_information_t new_customer = read_customer_info();
-    printf("Retrieved: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", new_customer.name, new_customer.id, new_customer.contact_number, new_customer.contact_address);
+    printf("Retrieved: \nName: %sID: %d\nPhone #: %s\nAddress: %s\n\n", new_customer.name, new_customer.id, new_customer.contact_number, new_customer.contact_address);
 
+
+    printf("Order ID: %d\nProduct Qty.: %d\n", order.id, order.quantity);
+    write_order_info(order);
+    printf("write successful (order) \n");
+    write_order_info(order2);
+    printf("write successful (order 2) \n");
+    customer_order_t new_order = read_order_info(1);
+    printf("Order ID %d\n Order qty: %d\n", new_order.id, new_order.quantity);
 
     // send_customer_info(serv.connection, customer);
 
