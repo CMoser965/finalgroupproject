@@ -82,3 +82,5 @@ void write_billing_info(billing_information_t billing);
 billing_information_t read_billing_info(int index);
 void write_order_info(customer_order_t order);
 customer_order_t read_order_info(int index);
+
+int num_entries(int type);

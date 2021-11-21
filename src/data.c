@@ -434,39 +434,46 @@ customer_order_t read_order_info(int index) {
     return order;
 }
 
+int num_entries(int type) {
+    int num = 0;
+    FILE* data;
+    
+    switch(type) {
+
+        case SELLER:
+            data = fopen("./data/sellerInformation.txt", "r");
+            break;
+
+        case CUSTOMER:
+            data = fopen("./data/customerInformation.txt", "r");
+            break;
+
+        case PRODUCT:
+            data = fopen("./data/productInformation.txt", "r");
+            break;
+
+        case BILLING: 
+            data = fopen("./data/billingInformation.txt", "r");
+            break;
+        
+        case ORDER:
+            data = fopen("./orderInformation.txt", "r");
+            break;
+    }
+
+    if(data == NULL) error("file cannot be read\n");
+            char temp;
+            while((temp = fgetc(data)) != EOF) {
+                if(temp == '\n') ++num;
+            }
+
+    return num;
+}
+
 int main() {
     // Server serv = init_server();
-    customer_information_t customer = {.contact_address = "123 Sesame Street", .contact_number = "1-800-420-6969", .id = 1, .name = "John Smith"};
-    seller_information_t seller = {.contact_number = "1-800-666-0000", .contact_address = "601 Devel Ln.", .name = "Mr. Bidness Man", .id = 1};
-    product_information_t product = {.id = 1, .description="Miracle Cure cures your skin of all herpes.", .seller_id = seller.id, .quantity = 200, .price = 100};
-    billing_information_t billing = {.id = 1, .customer_id = 1, .address = *customer.contact_address, billing.price = product.price};
-    customer_order_t order = {.id = 1, .product_id = product.id, .quantity = 1, .address = *customer.contact_address, .price = product.price};
-    customer_order_t order2 = {.id = 2, .product_id = product.id, .quantity = 2, .address = *customer.contact_address, .price = product.price};
-
-    printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", seller.name, seller.id, seller.contact_number, seller.contact_address);
-    write_seller_info(seller);
-    seller_information_t new_seller = read_seller_info(1);
-    printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", new_seller.name, new_seller.id, new_seller.contact_number, new_seller.contact_address);
-
-    printf("Product: %d\nDescription: %s\n", product.id, product.description);
-    write_product_info(product);
-    product_information_t new_product = read_product_info(1);
     
-    
-    printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
-
-    write_customer_info(customer);
-    customer_information_t new_customer = read_customer_info(1);
-    printf("Retrieved: \nName: %sID: %d\nPhone #: %s\nAddress: %s\n\n", new_customer.name, new_customer.id, new_customer.contact_number, new_customer.contact_address);
-
-
-    printf("Order ID: %d\nProduct Qty.: %d\n", order.id, order.quantity);
-    write_order_info(order);
-    printf("write successful (order) \n");
-    write_order_info(order2);
-    printf("write successful (order 2) \n");
-    customer_order_t new_order = read_order_info(1);
-    printf("Order ID %d\n Order qty: %d\n", new_order.id, new_order.quantity);
+    printf("%d\n", num_entries(CUSTOMER));
 
     // send_customer_info(serv.connection, customer);
 
