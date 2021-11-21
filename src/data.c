@@ -222,12 +222,17 @@ void write_customer_info(customer_information_t customer) {
     fclose(data);
 }
 
-customer_information_t read_customer_info() {
+customer_information_t read_customer_info(int index) {
     customer_information_t customer;
     FILE *data;
     char buffer[sizeof(customer_information_t)];
     data = fopen("./data/customerInformation.txt", "r");
     fgets(buffer, sizeof(customer_information_t), (FILE*)data);
+    char *short_buffer = strtok(buffer, "\n");
+    int i;
+    for(i = 0; i < index - 1; i++) {
+        short_buffer = strtok(NULL, "\t");
+    }
     char *temp = strtok(buffer, "\t");
     for(int i = 0; temp != NULL; i++) {
         switch(i) {
@@ -258,13 +263,18 @@ void write_seller_info(seller_information_t seller) {
     fclose(data);
 }
 
-seller_information_t read_seller_info() {
+seller_information_t read_seller_info(int index) {
     seller_information_t seller;
     FILE *data;
     char buffer[sizeof(seller_information_t)];
     data = fopen("./data/sellerInformation.txt", "r");
     fgets(buffer, sizeof(seller_information_t), (FILE*)data);
-    char *temp = strtok(buffer, "\t");
+    char *short_buffer = strtok(buffer, "\n");
+    int i = 0;
+    for(int i = 0; i < index - 1; i++) {
+        short_buffer = strtok(NULL, "\n");
+    }
+    char *temp = strtok(short_buffer, "\t");
     for(int i = 0; temp != NULL; i++) {
         switch(i) {
             case 0:
@@ -294,14 +304,19 @@ void write_product_info(product_information_t product) {
     fclose(data);
 }
 
-product_information_t read_product_info() {
+product_information_t read_product_info(int index) {
     product_information_t product;
     FILE *data;
     data = fopen("./data/productInformation.txt", "r");
     if(data == NULL) error("file cannot be opened\n");
     char buffer[sizeof(product_information_t)];
     fgets(buffer, sizeof(product_information_t), (FILE*)data);
-    char *temp = strtok(buffer, "\t");
+    char *short_buffer = strtok(buffer, "\n");
+    int i;
+    for(i = 0; i < index - 1; i++) {
+        short_buffer = strtok(NULL, "\n");
+    }
+    char *temp = strtok(short_buffer, "\t");
     for(int i = 0; temp != NULL; i++) {
         switch (i) {
             case 0:
@@ -324,6 +339,8 @@ product_information_t read_product_info() {
     return product;
     }
 
+// done
+// writes billing on top of file
 void write_billing_info(billing_information_t billing) {
     FILE *data;
     data = fopen("./data/billingInformation.txt", "a");
@@ -343,8 +360,12 @@ billing_information_t read_billing_info(int index) {
     if(data == NULL) error("file cannot be opened\n");
     char buffer[sizeof(billing_information_t)];
     fgets(buffer, sizeof(billing_information_t), (FILE*)data);
-    char *temp = strtok(buffer, "\t");
+    char *short_buffer = strtok(buffer, "\n");
     int i;
+    for(i = 0; i < index - 1; i++) {
+        short_buffer = strtok(NULL, "\n");
+    }
+    char *temp = strtok(short_buffer, "\t");
     for(i = 0; i < 4; i++) {
         switch(i) {
             case 0: // id
@@ -364,6 +385,8 @@ billing_information_t read_billing_info(int index) {
     return billing;
 }
 
+// DONE
+// writes an order on top of entries
 void write_order_info(customer_order_t order) {
     FILE *data;
     data = fopen("./data/orderInformation.txt", "a");
@@ -374,6 +397,8 @@ void write_order_info(customer_order_t order) {
     fclose(data);
 }
 
+// DONE
+// Reads index-th order entry in the orderInformation.txt
 customer_order_t read_order_info(int index) {
     customer_order_t order;
     FILE *data;
@@ -420,18 +445,18 @@ int main() {
 
     printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", seller.name, seller.id, seller.contact_number, seller.contact_address);
     write_seller_info(seller);
-    seller_information_t new_seller = read_seller_info();
+    seller_information_t new_seller = read_seller_info(1);
     printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", new_seller.name, new_seller.id, new_seller.contact_number, new_seller.contact_address);
 
     printf("Product: %d\nDescription: %s\n", product.id, product.description);
     write_product_info(product);
-    product_information_t new_product = read_product_info();
+    product_information_t new_product = read_product_info(1);
     
     
     printf("Entered: \nName: %s\nID: %d\nPhone #: %s\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
 
     write_customer_info(customer);
-    customer_information_t new_customer = read_customer_info();
+    customer_information_t new_customer = read_customer_info(1);
     printf("Retrieved: \nName: %sID: %d\nPhone #: %s\nAddress: %s\n\n", new_customer.name, new_customer.id, new_customer.contact_number, new_customer.contact_address);
 
 
