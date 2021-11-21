@@ -334,7 +334,9 @@ void write_billing_info(billing_information_t billing) {
     fclose(data);
 }
 
-billing_information_t read_billing_info() {
+// DONE
+// returns the index-th billing_information from sheet
+billing_information_t read_billing_info(int index) {
     billing_information_t billing;
     FILE *data;
     data = fopen("./data/billingInformation.txt", "r");
