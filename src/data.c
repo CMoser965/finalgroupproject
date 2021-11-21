@@ -457,7 +457,7 @@ int num_entries(int type) {
             break;
         
         case ORDER:
-            data = fopen("./orderInformation.txt", "r");
+            data = fopen("./data/orderInformation.txt", "r");
             break;
     }
 
@@ -473,7 +473,7 @@ int num_entries(int type) {
 int main() {
     // Server serv = init_server();
     
-    printf("%d\n", num_entries(CUSTOMER));
+    printf("%d\n", num_entries(PRODUCT));
 
     // send_customer_info(serv.connection, customer);
 
