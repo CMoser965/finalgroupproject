@@ -374,18 +374,14 @@ void write_order_info(customer_order_t order) {
 
 customer_order_t read_order_info(int index) {
     customer_order_t order;
-    printf("line 277");
     FILE *data;
-    printf("Line 378");
     data = fopen("./data/orderInformation.txt", "r");
     if(data == NULL) error("file cannot be opened\n");
-    printf("Line 380");
     char buffer[index*sizeof(customer_order_t)];
     fgets(buffer, index*sizeof(customer_order_t), (FILE*)data);
-    printf("Line 382");
     char *short_buffer = strtok(buffer, "\n");
     int i;
-    for(i = 0; i < index; i++) {
+    for(i = 0; i < index - 1; i++) {
         short_buffer = strtok(NULL, "\n");
     }
     char *temp = strtok(short_buffer, "\t");
