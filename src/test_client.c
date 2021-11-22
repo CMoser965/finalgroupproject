@@ -28,8 +28,6 @@
 
 int main() {
     int cliconn = init_client(PORT);
-    CustomerInfo customer = recv_customer_info(cliconn);
-    printf("Name: %s\nID: %d\nPhone #: %s\nAddress: %s\n", customer.name, customer.id, customer.contact_number, customer.contact_address);
 
     close(cliconn);
     return 0;
