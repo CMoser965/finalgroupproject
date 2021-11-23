@@ -187,16 +187,13 @@ void init_map(int type) {
 
     int n = num_entries(type);
     int i;
-    printf("There are %d entries of type %d\n", n, type);
     switch(type) {
         case CUSTOMER: ;
             customer_information_t tempc;
             for(i = 1; i <= n; i++) {
-                printf("%s added to hashmap. . . (%d)\n", tempc.name, i);
                 tempc = read_customer_info(i);
                 insert_cust(tempc.id, tempc);
             }
-            printf("TYPE %d init'd.\n", type);
             break;
         case SELLER: ;
             seller_information_t temps;

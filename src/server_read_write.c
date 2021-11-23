@@ -44,7 +44,6 @@ customer_information_t read_customer_info(int index) {
     for(i = 0; i < index - 1; i++) {
         fgets(buffer, sizeof(customer_information_t), (FILE*)data);
     }
-    printf("INDEX %d: %s\n", index, short_buffer);
     char *temp = strtok(buffer, "\t");
     for(int i = 0; temp != NULL; i++) {
         switch(i) {
@@ -214,11 +213,11 @@ customer_order_t read_order_info(int index) {
     FILE *data;
     data = fopen("./data/orderInformation.txt", "r");
     if(data == NULL) error("file cannot be opened\n");
-    char buffer[index*sizeof(customer_order_t)];
-    fgets(buffer, index*sizeof(customer_order_t), (FILE*)data);
+    char buffer[sizeof(customer_order_t)];
+    fgets(buffer, sizeof(customer_order_t), (FILE*)data);
     int i;
     for(i = 0; i < index - 1; i++) {
-        fgets(buffer, index*sizeof(customer_order_t), (FILE*)data);
+        fgets(buffer, sizeof(customer_order_t), (FILE*)data);
     }
     char *temp = strtok(buffer, "\t");
     for(i = 0; i < 5; i++) {
