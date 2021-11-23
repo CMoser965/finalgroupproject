@@ -34,9 +34,8 @@
 // Semaphores for multithreading
 sem_t conn1, conn2;
 pthread_t tid;
-pthread_t cli_writer[MAX_CONNS];
-pthread_t cli_reader[MAX_CONNS];
-int writernum = 0; 
+pthread_t clithreads[MAX_CONNS];
+int clinum = 0; 
 
 extern struct cust_node* cust_hash_arr[SIZE];
 extern struct sell_node* sell_hash_arr[SIZE];
@@ -92,20 +91,69 @@ void init_data() {
     printf("\n\n\n~~~~~~~~~~~~~~~~~ INITIALIZATION COMPLETED ~~~~~~~~~~~~~~~~~\n\n\n");
 }
 
+void* clifuncs(void* args) {
+    int conn = *((int*)args);
+    char buffer[BUFFER_SIZE];
+    read(conn, buffer, sizeof(buffer));
+    printf("Client %d: %s\n", conn, buffer);
+    close(conn);
+    pthread_exit(NULL);
+}
+
 int main() {
     
     init_data();
     
-    
-    // Server serv = init_server();
-    // int conn2 = new_conn_listener(serv);
-    
-    // send_customer_info(serv.connection, customer);
+    // initialize vars
+    int connfd;
+    struct sockaddr_in serv_addr;
 
-    // char *buffer = (char*)&customer;
-    // write(serv.connection, buffer, sizeof(customer_information_t));
+
+    // setup server address
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    
+    // set up thread locks
+    socklen_t addr_size;
+    sem_init(&conn1, 0, 1);
+    sem_init(&conn2, 0, 1);
+
+    // setup client connectivity
+    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if(server_socket < 0) error("socket cannot be initialized.\n");
+
+    // bind sock to serv addr
+    int sock_bind_status = bind(server_socket, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+    if(sock_bind_status < 0) error("socket cannot be binded\n");
+
+    // listen ... up to 100 servers
+    int listen_status = listen(server_socket, MAX_CONNS);
+    if(listen_status) error("server could not listen for client\n");
+
+    // threading arrays for tracking threads
+    pthread_t tid[MAX_CONNS];
+    struct sockaddr_storage server_store;
+
+    int count = 0;
+    while(1) {
+        addr_size = sizeof(server_store);
+        connfd = accept(server_socket, (struct sockaddr*)&server_store, &addr_size);
+        if(pthread_create(&clithreads[count++], NULL, clifuncs, &connfd)) error("failed to create thread\n");
+
+        // CONTROL BLOCK TO JOIN THREADS AFTER MAX_CONNS CONNECT
+        if(count >= MAX_CONNS) {
+            count = 0;
+            while(count < MAX_CONNS) {
+                pthread_join(clithreads[count++], NULL);
+            }
+        count = 0;
+        }
+    }
+
 
     // close(serv.connection);
     // close(serv.server_socket);
     return 0;
 }
+
