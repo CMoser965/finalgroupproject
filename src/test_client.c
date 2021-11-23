@@ -29,6 +29,10 @@
 int main() {
     int cliconn = init_client(PORT);
 
+    char buffer[BUFFER_SIZE];
+    sprintf(buffer, "inquire");
+    write(cliconn, buffer, sizeof(buffer));
+
     close(cliconn);
     return 0;
 }
