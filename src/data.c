@@ -48,6 +48,32 @@ void error(char *error) {
 * returns: struct Server with connection file descriptor and 
 *   server socket file descriptor waits for connection from client
 */
+
+int is_void_cust(customer_information_t temp) {
+    if(temp.name == NULL && temp.id == 0 && temp.contact_address == NULL && temp.contact_number == NULL) return 1;
+    else return 0;
+}
+
+int is_void_sell(seller_information_t temp) {
+    if(temp.name == NULL && temp.id == 0 && temp.contact_address == NULL && temp.contact_number == NULL) return 1;
+    else return 0;
+}
+
+int is_void_prod(product_information_t temp) {
+    if(temp.description == NULL && temp.id == 0 && temp.quantity == 0 && temp.price == 0 && temp.seller_id == 0) return 1;
+    else return 0;
+}
+
+int is_void_bill(billing_information_t temp) {
+    if(temp.price == 0 && temp.id == 0 && temp.customer_id == 0 && temp.address == NULL) return 1;
+    else return 0;
+}
+
+int is_void_order(customer_order_t temp) {
+    if(temp.address == NULL && temp.id == 0 && temp.price == 0 && temp.product_id == 0 && temp.quantity == 0) return 1;
+    else return 0;
+}
+
 Server init_server() {
     // initialize vars
     int connfd;
@@ -220,3 +246,22 @@ customer_order_t recv_customer_order(int connection) {
     return *temp;
 }
 
+void print_customer(customer_information_t temp) {
+    printf("Name: %s\tID: %d\tAddress: %s\tPhone num.: %s\t\n", temp.name, temp.id, temp.contact_address, temp.contact_number);
+}
+
+void print_seller(seller_information_t temp) {
+    printf("Name: %s\tID: %d\tAddress: %s\tPhone num.: %s\t\n", temp.name, temp.id, temp.contact_address, temp.contact_number);
+}
+
+void print_product(product_information_t temp) {
+    printf("Product Description: %s\tQty: %d\tPrice: %d\tID: %d\tSeller ID: %d\t\n", temp.description, temp.quantity, temp.price, temp.id, temp.seller_id);
+}
+
+void print_billing(billing_information_t temp) {
+    printf("Billing ID: %d\tBilling Address: %s\tTotal price: %d\tCustomer ID: %d\t\n", temp.id, temp.address, temp.price, temp.customer_id);
+}
+
+void print_order(customer_order_t temp) {
+    printf("Order ID: %d\tOrder Address: %s\tTotal price: %d\tQty.: %d\tProduct ID: %d\t\n", temp.id, temp.address, temp.price, temp.quantity, temp.product_id);
+}

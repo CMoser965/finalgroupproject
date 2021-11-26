@@ -45,7 +45,7 @@ struct cust_node *search_cust(int key) {
 
 struct sell_node* sell_hash_arr[SIZE];
 
-struct sell_node*search_sell(int key) {
+struct sell_node* search_sell(int key) {
     int hashed_index = hashcode(key);
 
     while(sell_hash_arr[hashed_index] != NULL) {
@@ -55,6 +55,7 @@ struct sell_node*search_sell(int key) {
         ++hashed_index;
         hashed_index %= SIZE;
     }
+    printf("No node of key %d found.\n", key);
     return NULL;
 }
 
