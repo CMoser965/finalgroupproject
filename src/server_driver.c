@@ -103,6 +103,7 @@ void init_data() {
 void recv_data(int conn) { // function for receiving data
     int flag; // init flag
     char buffer[BUFFER_SIZE]; // init buffer
+    while(read(conn, buffer, sizeof(buffer)) == 0);
     read(conn, buffer, sizeof(buffer)); // read into buffer from network socket
     flag = atoi(buffer); // set flag to first numericals from buffer
     switch(flag) { // CONTROL BLOCK
@@ -207,15 +208,18 @@ void* clifuncs(void* args) { // thread driver
                 sem_post(&sem);
                 break;
             case WRITE:
+                printf("Writing to file. . . \n");
                 sem_wait(&sem);
                 recv_data(conn);
+                while(read(conn, buffer, sizeof(buffer)) == 0);
+                bzero(buffer, sizeof(buffer));
                 sem_post(&sem);
                 break;
             case READ:
                 
                 break;
             default:
-                printf("Error: Client %d sent incorrect token (%d)\tExiting. . .\n", conn, flag);
+                printf("Error: Client %d sent incorrect flag token (%d)\tExiting. . .\n", conn, flag);
                 flag = SHUTDOWN_SIG;
                 break;
         }
