@@ -1,11 +1,11 @@
 #define PORT 4000
 #define BUFFER_SIZE 2048
 
-#define SELLER 0
-#define CUSTOMER 1
-#define PRODUCT 2
-#define BILLING 3
-#define ORDER 4
+#define SELLER 1
+#define CUSTOMER 2
+#define PRODUCT 3
+#define BILLING 4
+#define ORDER 5
 
 typedef struct {
     int connection;
@@ -73,3 +73,15 @@ void send_customer_order(int connection, customer_order_t order);
 customer_order_t recv_customer_order(int connection);
 
 int new_conn_listener(Server serv);
+
+void print_customer(customer_information_t temp);
+void print_seller(seller_information_t temp);
+void print_product(product_information_t temp);
+void print_billing(billing_information_t temp);
+void print_order(customer_order_t temp);
+
+int is_void_cust(customer_information_t temp);
+int is_void_sell(seller_information_t temp);
+int is_void_prod(product_information_t temp);
+int is_void_bill(billing_information_t temp);
+int is_void_order(customer_order_t temp);
