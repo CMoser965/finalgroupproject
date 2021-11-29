@@ -102,40 +102,46 @@ void init_data() {
 
 void recv_data(int conn) { // function for receiving data
     int flag; // init flag
-    char buffer[BUFFER_SIZE]; // init buffer
+    char buffer[3*BUFFER_SIZE]; // init buffer
     while(read(conn, buffer, sizeof(buffer)) == 0);
     read(conn, buffer, sizeof(buffer)); // read into buffer from network socket
     flag = atoi(buffer); // set flag to first numericals from buffer
+    printf("Flag=%d\n", flag);
     switch(flag) { // CONTROL BLOCK
         case CUSTOMER:;
             customer_information_t cust;
             cust = recv_customer_info(conn);
             print_customer(cust);
             insert_cust(cust.id, cust);
+            write_customer_info(cust);
             break;
         case SELLER:;
             seller_information_t sell;
             sell = recv_seller_info(conn);
             print_seller(sell);
             insert_sell(sell.id, sell);
+            write_seller_info(sell);
             break;
         case PRODUCT:;
             product_information_t prod;
             prod = recv_product_info(conn);
             print_product(prod);
             insert_prod(prod.id, prod);
+            write_product_info(prod);
             break;
         case BILLING:;
             billing_information_t bill;
             bill = recv_billing_info(conn);
             print_billing(bill);
             insert_bill(bill.id, bill);
+            write_billing_info(bill);
             break;
         case ORDER:;
             customer_order_t ord;
             ord = recv_customer_order(conn);
             print_order(ord);
             insert_order(ord.id, ord);
+            write_order_info(ord);
             break;
         default:
             error("Incorrect data type specified by Client\n");
@@ -145,10 +151,12 @@ void recv_data(int conn) { // function for receiving data
 
 void* clifuncs(void* args) { // thread driver
     int conn = *((int*)args); // get connection file descriptor
+    printf("Thread %ld created connected to client %d\n", pthread_self(), conn);
     int32_t flag = 0; // define a 32-bit flag
     char buffer[BUFFER_SIZE]; // define a buffer for comms
     do {
         read(conn, buffer, sizeof(buffer)); // first handshake
+        printf("%s\n", buffer);
         flag = atoi(buffer); // determines comm type
         bzero(buffer, sizeof(buffer)); // clear buffer for later usage
         switch(flag) { // control block for comm types
@@ -178,7 +186,6 @@ void* clifuncs(void* args) { // thread driver
                     case SELLER:;
                         struct sell_node *sell;
                         sell = search_sell(id);
-                        print_seller(sell->seller);
                         if(sell == NULL) send_seller_info(conn, NULL_SELLER);
                         else send_seller_info(conn, sell->seller);
                         break;
@@ -211,12 +218,14 @@ void* clifuncs(void* args) { // thread driver
                 printf("Writing to file. . . \n");
                 sem_wait(&sem);
                 recv_data(conn);
-                while(read(conn, buffer, sizeof(buffer)) == 0);
-                bzero(buffer, sizeof(buffer));
                 sem_post(&sem);
+                bzero(buffer, sizeof(buffer));
                 break;
-            case READ:
+            case EDIT:
                 
+                break;
+            case DELETE:
+
                 break;
             default:
                 printf("Error: Client %d sent incorrect flag token (%d)\tExiting. . .\n", conn, flag);

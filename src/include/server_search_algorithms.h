@@ -1,4 +1,4 @@
-#define SIZE 200
+#define SIZE 201
 
 struct cust_node {
     customer_information_t customer;

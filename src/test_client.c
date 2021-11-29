@@ -39,13 +39,13 @@ void server_query(int conn, int type, int id) {
         case CUSTOMER:;
             customer_information_t cust;
             cust = recv_customer_info(conn);
-            if(is_void_cust(cust)) printf("Customer does not exist. \n");
+            if(cust.id == 0) printf("Customer does not exist. \n");
             else print_customer(cust);
             break;
         case SELLER:;
             seller_information_t sell;
             sell = recv_seller_info(conn);
-            if(is_void_sell(sell)) printf("Seller does not exist. \n");
+            if(sell.id == 0) printf("Seller does not exist. \n");
             else print_seller(sell);
             break;
         case PRODUCT:;
@@ -171,7 +171,10 @@ int main() {
                 sprintf(buffer, "%d", flag);
                 write(conn, buffer, sizeof(buffer));
                 switch(flag) {
-                    case CUSTOMER:
+                    case CUSTOMER:;
+                        // customer_information_t *temp = &customer;
+                        // server_write(conn, flag, (char*)temp);
+                        // print_customer(customer);
                         send_customer_info(conn, customer);
                         break;
                     case SELLER:

@@ -28,6 +28,13 @@ int hashcode(int key) {
     return key % SIZE;
 }
 
+// // null vars for comparisons
+// customer_information_t NULL_CUSTOMER = {.id = 0, .name = {0}, .contact_number = {0}, .contact_address = {0}};
+// seller_information_t NULL_SELLER = {.id = 0, .name = {0}, .contact_number = {0}, .contact_address = {0}};
+// product_information_t NULL_PRODUCT = {.id = 0, .seller_id = 0, .quantity = 0, .price = 0, .description = {0}};
+// billing_information_t NULL_BILLING = {.id = 0, .customer_id = 0, .address = {0}, .price = 0};
+// customer_order_t NULL_ORDER = {.id = 0, .product_id = 0, .price = 0, .quantity = 0, .address = {0}};
+
 struct cust_node* cust_hash_arr[SIZE];
 
 struct cust_node *search_cust(int key) {

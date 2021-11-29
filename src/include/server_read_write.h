@@ -1,7 +1,8 @@
 #define SHUTDOWN_SIG 0
 #define QUERY 10
 #define WRITE 11
-#define READ 12
+#define EDIT 12
+#define DELETE 13
 
 void write_customer_info(customer_information_t customer);
 customer_information_t read_customer_info(int index);
