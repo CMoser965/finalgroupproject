@@ -123,6 +123,7 @@ int main() {
         printf("1. QUERY\n");
         printf("2. WRITE\n");
         printf("3. EDIT\n");
+        printf("4. DELETE\n");
         int choice;
         int temp_choice;
         scanf("%d", &choice);
@@ -135,6 +136,9 @@ int main() {
                 break;
             case 3: 
                 temp_choice = EDIT;
+                break;
+            case 4:
+                temp_choice = DELETE;
                 break;
         }
         sprintf(buffer, "%d", temp_choice);
@@ -230,9 +234,25 @@ int main() {
                 }
                 break;
             case 4:; // DELETE
+                printf("Enter a data type: \n");
+                printf("1. SELLER\n");
+                printf("2. CUSTOMER\n");
+                printf("3. PRODUCT\n");
+                printf("4. BILLING\n");
+                printf("5. ORDER\n");
+                new_choice = 1;
+                scanf("%d", &new_choice);
+                sprintf(buffer, "%d", new_choice);
+                printf("Send %s\t%d\tthrough the socket\n", buffer, new_choice);
+                write(conn, buffer, sizeof(buffer));
+                printf("Enter ID for lookup:\n");
+                id;
+                scanf("%d", &id);
+                sprintf(buffer, "%d", id);
+                write(conn, buffer, sizeof(buffer));
+                bzero(buffer, sizeof(buffer));
                 break;
         }
-
     }
     close(conn);
     return 0;

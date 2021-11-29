@@ -292,6 +292,60 @@ void recv_edit(int conn) {
     overwrite_map(type);
 }
 
+void recv_del(int conn) {
+    char buffer[2*BUFFER_SIZE];
+    read(conn, buffer, sizeof(buffer));
+    int type;
+    type = atoi(buffer);
+    bzero(buffer, sizeof(buffer));
+    read(conn, buffer, sizeof(buffer));
+    int id;
+    id = atoi(buffer);
+    switch(type) {
+        case CUSTOMER:;
+            struct cust_node *cust;
+            cust = search_cust(id);
+            if(cust == NULL)    return;
+            else    delete_cust(cust);
+            printf("Deleted customer ID %d\n", id);
+            break;
+        case SELLER:;
+            struct sell_node *sell;
+            sell = search_sell(id);
+            if(sell == NULL)    return;
+            else    delete_sell(sell);
+            printf("Deleted seller ID %d\n", id);
+            break;
+        case PRODUCT:;
+            struct prod_node *prod;
+            prod = search_prod(id);
+            if(prod == NULL)    return;
+            else    delete_prod(prod);
+            printf("Deleted product ID %d\n", id);
+            break;
+        case BILLING:;
+            struct bill_node *bill;
+            bill = search_bill(id);
+            if(bill == NULL)    return;
+            else    delete_bill(bill);
+            printf("Deleted billing ID %d\n", id);
+            break;
+        case ORDER:;
+            struct order_node *ord;
+            ord = search_order(id);
+            if(ord == NULL) return;
+            else    delete_order(ord);
+            printf("Deleted order ID %d\n", id);
+            break;
+        default:
+        printf("Error: Client %d sent incorrect type token (%d)\tExiting. . .\n", conn, type);
+        break;
+    }
+    // while(read(conn, buffer, sizeof(buffer)) == 0);
+    // bzero(buffer, sizeof(buffer));
+    overwrite_map(type);
+}
+
 void* clifuncs(void* args) { // thread driver
     int conn = *((int*)args); // get connection file descriptor
     clinum++;
@@ -325,6 +379,9 @@ void* clifuncs(void* args) { // thread driver
                 break;
             case DELETE:
                 printf("Deleting. . .\n");
+                sem_wait(&sem);
+                recv_del(conn);
+                sem_post(&sem);
                 break;
             default:
                 printf("Error: Client %d sent incorrect flag token (%d)\tExiting. . .\n", conn, flag);

@@ -227,7 +227,7 @@ void overwrite_map(int type) {
             }
             break;
         case ORDER:;
-            data = fopen("./data/orderInformation", "w");
+            data = fopen("./data/orderInformation.txt", "w");
             fclose(data);
             for(i = 0; i < SIZE; i++) {
                 if(order_hash_arr[i] != NULL)
