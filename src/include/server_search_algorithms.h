@@ -38,3 +38,10 @@ void insert_bill(int key, billing_information_t temp);
 void insert_order(int key, customer_order_t temp);
 
 void init_map(int type);
+void overwrite_map(int type);
+
+struct cust_node* delete_cust(struct cust_node* node);
+struct sell_node* delete_sell(struct sell_node* node);
+struct prod_node* delete_prod(struct prod_node* node);
+struct bill_node* delete_bill(struct bill_node* node);
+struct order_node* delete_order(struct order_node* node);
