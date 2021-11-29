@@ -70,25 +70,25 @@ void init_data() {
     printf("~~~~~~~~~~~~~~~~~\tAll customers\t~~~~~~~~~~~~~~~~~\n\n");
     for(i = 0; i < SIZE; i++) {
         if(cust_hash_arr[i] != NULL) {
-            printf("Name: %s\tID: %d\t\n", cust_hash_arr[i]->customer.name, cust_hash_arr[i]->customer.id);
+            print_customer(cust_hash_arr[i]->customer);
         }
     }
     printf("\n~~~~~~~~~~~~~~~~~\tAll sellers\t~~~~~~~~~~~~~~~~~\n\n");
     for(i = 0; i < SIZE; i++) {
         if(sell_hash_arr[i] != NULL) {
-            printf("Name: %s\tID: %d\t\n", sell_hash_arr[i]->seller.name, sell_hash_arr[i]->seller.id);
+            print_seller(sell_hash_arr[i]->seller);
         }
     }
     printf("\n~~~~~~~~~~~~~~~~~\tAll products\t~~~~~~~~~~~~~~~~~\n\n");
     for(i = 0; i < SIZE; i++) {
         if(prod_hash_arr[i] != NULL) {
-            printf("Name: %s\tID: %d\t\n", prod_hash_arr[i]->product.description, prod_hash_arr[i]->product.id);
+            print_product(prod_hash_arr[i]->product);
         }
     }
     printf("\n~~~~~~~~~~~~~~~~~\tAll billing\t~~~~~~~~~~~~~~~~~\n\n");
     for(i = 0; i < SIZE; i++) {
         if(bill_hash_arr[i] != NULL) {
-            printf("Order belonging to: %s\tID: %d\t\n", search_cust(bill_hash_arr[i]->billing.customer_id)->customer.name, bill_hash_arr[i]->billing.id);
+            print_billing(bill_hash_arr[i]->billing);
         }
     }
     printf("\n~~~~~~~~~~~~~~~~~\tAll orders\t~~~~~~~~~~~~~~~~~\n\n");
@@ -103,7 +103,7 @@ void init_data() {
 void recv_data(int conn) { // function for receiving data
     int flag; // init flag
     char buffer[3*BUFFER_SIZE]; // init buffer
-    while(read(conn, buffer, sizeof(buffer)) == 0);
+    // while(read(conn, buffer, sizeof(buffer)) == 0);
     read(conn, buffer, sizeof(buffer)); // read into buffer from network socket
     flag = atoi(buffer); // set flag to first numericals from buffer
     printf("Flag=%d\n", flag);
@@ -149,69 +149,165 @@ void recv_data(int conn) { // function for receiving data
     }
 }
 
+void recv_query(int conn) {
+    char buffer[3*BUFFER_SIZE];
+    read(conn, buffer, sizeof(buffer)); // determine data type from network socket transmission
+    // while(read(conn, buffer, sizeof(buffer)) == 0); // read until newline
+    int type;
+    type = atoi(buffer);
+    bzero(buffer, sizeof(buffer));
+    // determine lookup id from network socket transmission
+    // while(read(conn, buffer, sizeof(buffer)) == 0);
+    read(conn, buffer, sizeof(buffer));
+    int id;
+    id = atoi(buffer);
+    switch(type) {
+        case CUSTOMER:;
+            struct cust_node *cust;
+            cust = search_cust(id);
+            if(cust == NULL) send_customer_info(conn, NULL_CUSTOMER);
+            else {
+                send_customer_info(conn, cust->customer);
+                print_customer(cust->customer);
+            }
+            break;
+        case SELLER:;
+            struct sell_node *sell;
+            sell = search_sell(id);
+            if(sell == NULL) send_seller_info(conn, NULL_SELLER);
+            else send_seller_info(conn, sell->seller);
+            break;
+        case PRODUCT:;
+            struct prod_node *prod;
+            prod = search_prod(id);
+            if(prod == NULL) send_product_info(conn, NULL_PRODUCT);
+            else send_product_info(conn, prod->product);
+            break;
+        case BILLING:;
+            struct bill_node *bill;
+            bill = search_bill(id);
+            if(bill == NULL) send_billing_info(conn, NULL_BILLING);
+            else send_billing_info(conn, bill->billing);
+            break;
+        case ORDER:;
+            struct order_node *ord;
+            ord = search_order(id);
+            if(ord == NULL) send_customer_order(conn, NULL_ORDER);
+            else send_customer_order(conn, ord->order);
+            break;
+        default:
+        printf("Error: Client %d sent incorrect type token (%d)\tExiting. . .\n", conn, type);
+        break;
+    }
+}
+
+void recv_edit(int conn) {
+    char buffer[3*BUFFER_SIZE];
+    read(conn, buffer, sizeof(buffer)); // determine data type from network socket transmission
+    int type;
+    type = atoi(buffer);
+    bzero(buffer, sizeof(buffer));
+    // determine lookup id from network socket transmission
+    // while(read(conn, buffer, sizeof(buffer)) == 0);
+    read(conn, buffer, sizeof(buffer));
+    int id;
+    id = atoi(buffer);
+    switch(type) {
+        case CUSTOMER:;
+            struct cust_node *cust;
+            cust = search_cust(id);
+            if(cust == NULL) send_customer_info(conn, NULL_CUSTOMER);
+            else {
+                send_customer_info(conn, cust->customer);
+                delete_cust(cust);
+                cust->customer = recv_customer_info(conn);
+                printf("New entry: \n");
+                cust->customer.id = id;
+                print_customer(cust->customer);
+                insert_cust(id, cust->customer);
+            }
+            break;
+        case SELLER:;
+            struct sell_node *sell;
+            sell = search_sell(id);
+            if(sell == NULL) send_seller_info(conn, NULL_SELLER);
+            else {
+                send_seller_info(conn, sell->seller);
+                delete_sell(sell);
+                sell->seller = recv_seller_info(conn);
+                printf("New entry: \n");
+                sell->seller.id = id;
+                print_seller(sell->seller);
+                insert_sell(id, sell->seller);
+            }
+            break;
+        case PRODUCT:;
+            struct prod_node *prod;
+            prod = search_prod(id);
+            if(prod == NULL) send_product_info(conn, NULL_PRODUCT);
+            else {
+                send_product_info(conn, prod->product);
+                delete_prod(prod);
+                prod->product = recv_product_info(conn);
+                printf("New entry: \n");
+                prod->product.id = id;
+                print_product(prod->product);
+                insert_prod(id, prod->product);
+            }
+            break;
+        case BILLING:;
+            struct bill_node *bill;
+            bill = search_bill(id);
+            if(bill == NULL) send_billing_info(conn, NULL_BILLING);
+            else {
+                send_billing_info(conn, bill->billing);
+                delete_bill(bill);
+                bill->billing = recv_billing_info(conn);
+                printf("New entry: \n");
+                bill->billing.id = id;
+                print_billing(bill->billing);
+                insert_bill(id, bill->billing);
+                }
+            break;
+        case ORDER:;
+            struct order_node *ord;
+            ord = search_order(id);
+            if(ord == NULL) send_customer_order(conn, NULL_ORDER);
+            else {
+                send_customer_order(conn, ord->order);
+                delete_order(ord);
+                ord->order = recv_customer_order(conn);
+                printf("New entry: \n");
+                ord->order.id = id;
+                print_order(ord->order);
+                insert_order(id, ord->order);
+            }
+            break;
+        default:
+        printf("Error: Client %d sent incorrect type token (%d)\tExiting. . .\n", conn, type);
+        break;
+    }
+    // while(read(conn, buffer, sizeof(buffer)) == 0);
+    // bzero(buffer, sizeof(buffer));
+    overwrite_map(type);
+}
+
 void* clifuncs(void* args) { // thread driver
     int conn = *((int*)args); // get connection file descriptor
-    printf("Thread %ld created connected to client %d\n", pthread_self(), conn);
+    clinum++;
+    printf("Thread %d created connected to client %d\n", clinum, conn);
     int32_t flag = 0; // define a 32-bit flag
     char buffer[BUFFER_SIZE]; // define a buffer for comms
     do {
         read(conn, buffer, sizeof(buffer)); // first handshake
-        printf("%s\n", buffer);
         flag = atoi(buffer); // determines comm type
+        while(read(conn, buffer, sizeof(buffer)) == 0); // read until newline
         bzero(buffer, sizeof(buffer)); // clear buffer for later usage
         switch(flag) { // control block for comm types
             case QUERY:;
-                printf("Querying. . .\n"); 
-                while(read(conn, buffer, sizeof(buffer)) == 0); // read until newline
-                read(conn, buffer, sizeof(buffer)); // determine data type from network socket transmission
-                int type;
-                type = atoi(buffer);
-                bzero(buffer, sizeof(buffer));
-                // determine lookup id from network socket transmission
-                while(read(conn, buffer, sizeof(buffer)) == 0);
-                read(conn, buffer, sizeof(buffer));
-                int id;
-                id = atoi(buffer);
+                printf("Querying. . .\n");
                 sem_wait(&sem);
-                switch(type) {
-                    case CUSTOMER:;
-                        struct cust_node *cust;
-                        cust = search_cust(id);
-                        if(cust == NULL) send_customer_info(conn, NULL_CUSTOMER);
-                        else {
-                            send_customer_info(conn, cust->customer);
-                            print_customer(cust->customer);
-                        }
-                        break;
-                    case SELLER:;
-                        struct sell_node *sell;
-                        sell = search_sell(id);
-                        if(sell == NULL) send_seller_info(conn, NULL_SELLER);
-                        else send_seller_info(conn, sell->seller);
-                        break;
-                    case PRODUCT:;
-                        struct prod_node *prod;
-                        prod = search_prod(id);
-                        if(prod == NULL) send_product_info(conn, NULL_PRODUCT);
-                        else send_product_info(conn, prod->product);
-                        break;
-                    case BILLING:;
-                        struct bill_node *bill;
-                        bill = search_bill(id);
-                        if(bill == NULL) send_billing_info(conn, NULL_BILLING);
-                        else send_billing_info(conn, bill->billing);
-                        break;
-                    case ORDER:;
-                        struct order_node *ord;
-                        ord = search_order(id);
-                        if(ord == NULL) send_customer_order(conn, NULL_ORDER);
-                        else send_customer_order(conn, ord->order);
-                        break;
-                    default:
-                    printf("Error: Client %d sent incorrect type token (%d)\tExiting. . .\n", conn, type);
-                    flag = SHUTDOWN_SIG;
-                    break;
-                }
+                recv_query(conn);
                 sem_post(&sem);
                 break;
             case WRITE:
@@ -221,11 +317,14 @@ void* clifuncs(void* args) { // thread driver
                 sem_post(&sem);
                 bzero(buffer, sizeof(buffer));
                 break;
-            case EDIT:
-                
+            case EDIT:;
+                printf("Editing. . . \n");
+                sem_wait(&sem);
+                recv_edit(conn);
+                sem_post(&sem);
                 break;
             case DELETE:
-
+                printf("Deleting. . .\n");
                 break;
             default:
                 printf("Error: Client %d sent incorrect flag token (%d)\tExiting. . .\n", conn, flag);
@@ -233,6 +332,7 @@ void* clifuncs(void* args) { // thread driver
                 break;
         }
     } while(flag);
+    clinum--;
     pthread_exit(NULL);
 }
 

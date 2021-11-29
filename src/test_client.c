@@ -106,7 +106,7 @@ int main() {
     customer_information_t customer = {.name = "Abe Lincoln",
                     .id=200, .contact_address="1600 Pennsylvania Ave.", .contact_number="1-800-1865"};
     seller_information_t seller = {.name = "Jeff David", .id=200,
-                    .contact_number="1-800-1860", .contact_address="!601 Pennsylvania Ave."};
+                    .contact_number="1-800-1860", .contact_address="601 Pennsylvania Ave."};
     product_information_t product = {.description="Miracle Fish Bone Paste cures neurosis", 
                     .id=200, .seller_id=200, .price=125, .quantity=69};
     billing_information_t billing = {.price=2*product.price, .id=200, .customer_id=customer.id,
@@ -122,7 +122,7 @@ int main() {
         printf("Enter a comm type: \n");
         printf("1. QUERY\n");
         printf("2. WRITE\n");
-        printf("3. READ\n");
+        printf("3. EDIT\n");
         int choice;
         int temp_choice;
         scanf("%d", &choice);
@@ -134,7 +134,7 @@ int main() {
                 temp_choice = WRITE;
                 break;
             case 3: 
-                temp_choice = READ;
+                temp_choice = EDIT;
                 break;
         }
         sprintf(buffer, "%d", temp_choice);
@@ -194,8 +194,42 @@ int main() {
                         flag = SHUTDOWN_SIG;
                 }                
                 break;
-            case 3:; // READ
-                printf("Functionality not yet written.\n");
+            case 3:; // EDIT
+                printf("Enter a data type: \n");
+                printf("1. SELLER\n");
+                printf("2. CUSTOMER\n");
+                printf("3. PRODUCT\n");
+                printf("4. BILLING\n");
+                printf("5. ORDER\n");
+                new_choice = 1;
+                scanf("%d", &new_choice);
+                sprintf(buffer, "%d", new_choice);
+                printf("Send %s\t%d\tthrough the socket\n", buffer, new_choice);
+                write(conn, buffer, sizeof(buffer));
+                printf("Enter ID for lookup:\n");
+                id;
+                scanf("%d", &id);
+                server_query(conn, new_choice, id);
+                switch(new_choice) {
+                    case CUSTOMER:;
+                        send_customer_info(conn, customer);
+                        break;
+                    case SELLER:;
+                        send_seller_info(conn, seller);
+                        break;
+                    case PRODUCT:;
+                        send_product_info(conn, product);
+                        break;
+                    case BILLING:;
+                        send_billing_info(conn, billing);
+                        break;
+                    case ORDER:;
+                        send_customer_order(conn, order);
+                        break;
+
+                }
+                break;
+            case 4:; // DELETE
                 break;
         }
 

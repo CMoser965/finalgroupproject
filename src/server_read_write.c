@@ -270,10 +270,10 @@ int num_entries(int type) {
     }
 
     if(data == NULL) error("file cannot be read\n");
-            char temp;
-            while((temp = fgetc(data)) != EOF) {
-                if(temp == '\n') ++num;
-            }
+    char temp;
+    while((temp = fgetc(data)) != EOF) {
+        if(temp == '\n') ++num;
+    }
 
     return num;
 }

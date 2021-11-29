@@ -191,6 +191,54 @@ void insert_order(int key, customer_order_t temp) {
     order_hash_arr[hashed_index] = node;
 }
 
+void overwrite_map(int type) {
+    int i;
+    FILE* data;
+    switch(type) {
+        case CUSTOMER:; 
+            data = fopen("./data/customerInformation.txt", "w");
+            fclose(data);
+            for(i = 0; i < SIZE; i++) {
+                if(cust_hash_arr[i] != NULL) 
+                    write_customer_info(cust_hash_arr[i]->customer);
+        }
+            break;
+        case SELLER:;
+            data = fopen("./data/sellerInformation.txt", "w");
+            fclose(data);
+            for(i = 0; i < SIZE; i++) {
+                if(sell_hash_arr[i] != NULL)
+                    write_seller_info(sell_hash_arr[i]->seller);
+            }
+            break;
+        case PRODUCT:;
+            data = fopen("./data/productInformation.txt", "w");
+            fclose(data);
+            for(i = 0; i < SIZE; i++) 
+                if(prod_hash_arr[i] != NULL)
+                    write_product_info(prod_hash_arr[i]->product);
+            break;
+        case BILLING:;
+            data = fopen("./data/billingInformation.txt", "w");
+            fclose(data);
+            for(i = 0; i < SIZE; i++) {
+                if(bill_hash_arr[i] != NULL) 
+                    write_billing_info(bill_hash_arr[i]->billing);
+            }
+            break;
+        case ORDER:;
+            data = fopen("./data/orderInformation", "w");
+            fclose(data);
+            for(i = 0; i < SIZE; i++) {
+                if(order_hash_arr[i] != NULL)
+                    write_order_info(order_hash_arr[i]->order);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 void init_map(int type) {
 
     int n = num_entries(type);
@@ -205,31 +253,105 @@ void init_map(int type) {
             break;
         case SELLER: ;
             seller_information_t temps;
-            for(i = 0; i < n; i++) {
+            for(i = 1; i <= n; i++) {
                 temps = read_seller_info(i);
                 insert_sell(temps.id, temps);
             }
             break;
         case PRODUCT: ;
             product_information_t tempp;
-            for(i = 0; i < n; i++) {
+            for(i = 1; i <= n; i++) {
                 tempp = read_product_info(i);
                 insert_prod(tempp.id, tempp);
             }
             break;
         case BILLING: ;
             billing_information_t tempb;
-            for(i = 0; i < n; i++) {
+            for(i = 1; i <= n; i++) {
                 tempb = read_billing_info(i);
                 insert_bill(tempb.id, tempb);
             }
             break;
         case ORDER: ;
             customer_order_t tempo;
-            for(i = 0; i < n; i++) {
+            for(i = 1; i <= n; i++) {
                 tempo = read_order_info(i);
                 insert_order(tempo.id, tempo);
             }
             break;
     }
+}
+
+struct cust_node* delete_cust(struct cust_node* node) {
+    int key = node->key;
+    int hashed_key = hashcode(key);
+    while(cust_hash_arr[hashed_key] != NULL) {
+        if(cust_hash_arr[hashed_key]->key == key) {
+            struct cust_node* temp = cust_hash_arr[hashed_key];
+            cust_hash_arr[hashed_key] = NULL;
+            return temp;
+        }
+        ++hashed_key;
+        hashed_key %= SIZE;
+    }
+    return NULL;
+}
+
+struct sell_node* delete_sell(struct sell_node* node) {
+    int key = node->key;
+    int hashed_key = hashcode(key);
+    while(sell_hash_arr[hashed_key] != NULL) {
+        if(sell_hash_arr[hashed_key]->key == key) {
+            struct sell_node* temp = sell_hash_arr[hashed_key];
+            sell_hash_arr[hashed_key] = NULL;
+            return temp;
+        }
+        ++hashed_key;
+        hashed_key %= SIZE;
+    }
+    return NULL;
+}
+struct prod_node* delete_prod(struct prod_node* node) {
+    int key = node->key;
+    int hashed_key = hashcode(key);
+    while(prod_hash_arr[hashed_key] != NULL) {
+        if(prod_hash_arr[hashed_key]->key == key) {
+            struct prod_node* temp = prod_hash_arr[hashed_key];
+            prod_hash_arr[hashed_key] = NULL;
+            return temp;
+        }
+        ++hashed_key;
+        hashed_key %= SIZE;
+    }
+    return NULL;
+}
+
+struct bill_node* delete_bill(struct bill_node* node) {
+    int key = node->key;
+    int hashed_key = hashcode(key);
+    while(bill_hash_arr[hashed_key] != NULL) {
+        if(bill_hash_arr[hashed_key]->key == key) {
+            struct bill_node* temp = bill_hash_arr[hashed_key];
+            bill_hash_arr[hashed_key] = NULL;
+            return temp;
+        }
+        ++hashed_key;
+        hashed_key %= SIZE;
+    }
+    return NULL;
+}
+
+struct order_node* delete_order(struct order_node* node) {
+    int key = node->key;
+    int hashed_key = hashcode(key);
+    while(order_hash_arr[hashed_key] != NULL) {
+        if(order_hash_arr[hashed_key]->key == key) {
+            struct order_node* temp = order_hash_arr[hashed_key];
+            order_hash_arr[hashed_key] = NULL;
+            return temp;
+        }
+        ++hashed_key;
+        hashed_key %= SIZE;
+    }
+    return NULL;
 }
