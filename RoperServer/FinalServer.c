@@ -21,13 +21,333 @@ Description: This is the file for the server that is the intermediate program th
 #include <unistd.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <signal.h>
 
 #include "FinalServer.h"
 
-#define BUFFER_SIZE 2048
 
+#define MAX_CONNS 100
+#define SHUTDOWN_SIG 0
+#define QUERY 10
+#define	WRITE 11
+#define	EDIT 12
+#define	DELETE 13
 
 int port = 4001;
+
+
+sem_t sem;
+pthread_t tid;
+pthread_t clithreads[MAX_CONNS];
+int clinum = 0;
+
+
+
+void get_query(int data, int client) {
+	char buffer[3*BUFFER_SIZE];
+	
+	
+	sprintf(buffer, "%d", QUERY); 
+	write(data, buffer, sizeof(buffer)); // writing to the data server about the type of info transfer
+	bzero(buffer, sizeof(buffer));
+	
+	read(client, buffer, sizeof(buffer));
+	int dataType;
+	dataType = atoi(buffer); // getting the type of data that they want to query
+	bzero(buffer, sizeof(buffer)); // resetting the buffer
+	
+	
+	sprintf(buffer, "%d", dataType); 
+	write(data, buffer, sizeof(buffer));  // writing to the server about the data type
+	bzero(buffer, sizeof(buffer));
+	
+	
+	read(client, buffer, sizeof(buffer));
+	int id;
+	id = atoi(buffer); // getting the id of the data that they want to find
+	bzero(buffer, sizeof(buffer)); // resetting the buffer
+	
+	sprintf(buffer, "%d", id); 
+	write(data, buffer, sizeof(buffer));  // writing the id to the server for query
+	bzero(buffer, sizeof(buffer));
+	
+	switch(dataType) {
+		case CUSTOMER: ;
+			// customer query case
+
+			customer_information_t customer;
+			customer = recv_customer_info(data);
+			if (customer.id == 0) {
+				char message[] = "Customer ID does not exist.\n";
+				write(client, message, sizeof(message));
+			} else {
+				send_customer_info(client, customer); 
+			}
+			bzero(buffer, sizeof(buffer));
+			break;
+			
+			case SELLER: ;
+				// seller query case
+				seller_information_t seller;
+				seller = recv_seller_info(data);
+				if (seller.id == 0) {
+					char message[] = "Seller ID does not exist.\n";
+					write(client, message, sizeof(message));
+				} else {
+					send_seller_info(client, seller); 
+				}
+				bzero(buffer, sizeof(buffer));
+				break;
+				
+			case PRODUCT: ;
+				// product query case
+				
+				
+				break;
+			
+			case BILLING: ;
+				// billing query case
+				
+				billing_information_t bill;
+				bill = recv_billing_info(data);
+				if (is_void_bill(bill)) {
+					char message[] = "Billing does not exist.\n";
+					write(client, message, sizeof(message));
+				} else {
+					send_billing_info(client, bill); 
+				}
+				bzero(buffer, sizeof(buffer));
+				break;
+			
+			case ORDER: ;
+				// order query case
+				
+				customer_order_t order;
+				order = recv_customer_order(data);
+				if (is_void_order(order)) {
+					char message[] = "Order does not exist.\n";
+					write(client, message, sizeof(message));
+				} else {
+					send_customer_order(client, order); 
+				}
+				bzero(buffer, sizeof(buffer));
+				break;
+			
+			default:
+				error("Incorrect data type specified\n");
+				break;
+	}
+}
+
+void get_write(int data, int client) {
+	char buffer[3*BUFFER_SIZE];
+	
+	sprintf(buffer, "%d", WRITE); 
+	write(data, buffer, sizeof(buffer)); // writing to the data server about the type of info transfer
+	bzero(buffer, sizeof(buffer));
+	
+	read(client, buffer, sizeof(buffer));
+	int dataType;
+	dataType = atoi(buffer); // getting the type of data that they want to write
+	bzero(buffer, sizeof(buffer)); // resetting the buffer
+	
+	switch(dataType) {
+		case CUSTOMER: ;
+			// customer write case
+
+			customer_information_t customer;
+			customer = recv_customer_info(client); // get the customer from the client
+			send_customer_info(data, customer); // send the new customer over to the data server
+			bzero(buffer, sizeof(buffer)); // resetting the buffer
+			
+			break;
+			
+			case SELLER: ;
+				// seller write case
+				seller_information_t seller;
+				seller = recv_seller_info(client);
+				send_seller_info(data, seller);
+				bzero(buffer, sizeof(buffer));
+				break;
+				
+			case PRODUCT: ;
+				// product write case
+				
+				read(client, buffer, sizeof(buffer));
+				int id;
+				id = atoi(buffer); // getting the id of the seller who wants to list the product 
+				bzero(buffer, sizeof(buffer)); // resetting the buffer
+				
+				sprintf(buffer, "%d", id); 
+				write(data, buffer, sizeof(buffer)); // writing the id of the seller to the data server
+				bzero(buffer, sizeof(buffer));
+				
+				product_information_t product;
+				product = recv_product_info(client);
+				send_product_info(data, product);
+				bzero(buffer, sizeof(buffer));
+				break;
+				
+			default:
+				error("Incorrect data type specified\n");
+				break;
+	}
+}
+
+void get_edit(int data, int client) {
+	char buffer[3*BUFFER_SIZE];
+	
+	
+	sprintf(buffer, "%d", EDIT); 
+	write(data, buffer, sizeof(buffer)); // writing to the data server about the type of info transfer
+	bzero(buffer, sizeof(buffer));
+	
+	read(client, buffer, sizeof(buffer));
+	int dataType;
+	dataType = atoi(buffer); // getting the type of data that they want to write
+	bzero(buffer, sizeof(buffer)); // resetting the buffer
+	
+	switch(dataType) {
+		case CUSTOMER: ;
+			// customer edit case
+
+			customer_information_t customer;
+			customer = recv_customer_info(client); // get the customer from the client
+			send_customer_info(data, customer); // send the new customer over to the data server
+			bzero(buffer, sizeof(buffer)); // resetting the buffer
+			
+			break;
+			
+			case SELLER: ;
+				// seller edit case
+				seller_information_t seller;
+				seller = recv_seller_info(client);
+				send_seller_info(data, seller);
+				bzero(buffer, sizeof(buffer));
+				break;
+				
+			case PRODUCT: ;
+				// product edit case
+				
+				read(client, buffer, sizeof(buffer));
+				int id;
+				id = atoi(buffer); // getting the id of the seller who wants to list the product 
+				bzero(buffer, sizeof(buffer)); // resetting the buffer
+				
+				sprintf(buffer, "%d", id); 
+				write(data, buffer, sizeof(buffer)); // writing the id of the seller to the data server
+				bzero(buffer, sizeof(buffer));
+				
+				
+				product_information_t product;
+				product = recv_product_info(client);
+				send_product_info(data, product);
+				bzero(buffer, sizeof(buffer));
+				break;
+				
+			default:
+				error("Incorrect data type specified\n");
+				break;
+	}
+}
+
+void get_delete(int data, int client) {
+	char buffer[3*BUFFER_SIZE];
+	
+	
+	sprintf(buffer, "%d", DELETE); 
+	write(data, buffer, sizeof(buffer)); // writing to the data server about the type of info transfer
+	bzero(buffer, sizeof(buffer));
+	
+	read(client, buffer, sizeof(buffer));
+	int dataType;
+	dataType = atoi(buffer); // getting the type of data that they want to write
+	bzero(buffer, sizeof(buffer)); // resetting the buffer
+	
+	
+	sprintf(buffer, "%d", dataType); 
+	write(data, buffer, sizeof(buffer)); // writing to the data server about the type of info to delete
+	bzero(buffer, sizeof(buffer));
+	
+	
+	read(client, buffer, sizeof(buffer));
+	int id;
+	id = atoi(buffer); // getting the id of the data that they want to find
+	bzero(buffer, sizeof(buffer)); // resetting the buffer
+	
+	sprintf(buffer, "%d", id); 
+	write(data, buffer, sizeof(buffer));  // writing the id to the server for query
+	bzero(buffer, sizeof(buffer));
+	
+	
+	
+}
+
+
+
+
+
+
+
+void* clientFunc(void* args)  {
+	
+	unsigned int (*conn)[2] = (unsigned int(*)[2])args;
+	int data = conn[0];
+	int client = conn[1];
+	clinum++;
+	
+	int32_t flag = 0;
+	int connected = 1;
+	char buffer[BUFFER_SIZE];
+	
+	do {
+		read(client, buffer, sizeof(buffer));
+		flag = atoi(buffer);
+		while(read(client, buffer, sizeof(buffer)) == 0);
+		bzero(buffer, sizeof(buffer));
+		
+		switch(flag) {
+			case QUERY: ;
+			
+				sem_wait(&sem);
+				get_query(data, client);
+				sem_post(&sem);
+				bzero(buffer, sizeof(buffer));
+			
+			case WRITE: ;
+			
+				sem_wait(&sem);
+				get_write(data, client);
+				sem_post(&sem);
+				bzero(buffer, sizeof(buffer));
+			
+			case EDIT: ;
+			
+				sem_wait(&sem);
+				get_edit(data, client);
+				sem_post(&sem);
+				bzero(buffer, sizeof(buffer));
+				
+			case DELETE: ;
+			
+				sem_wait(&sem);
+				get_delete(data, client);
+				sem_post(&sem);
+				bzero(buffer, sizeof(buffer));
+				
+			default:
+				break;
+		}
+	} while(connected);
+	
+	clinum--;
+	pthread_exit(NULL);
+	
+}
+
+
+
+
 
 
 int main() {
@@ -40,9 +360,11 @@ int main() {
 	int socketfd, retval;  // used for the accept() function
 	int newSock;
 	
-	pid_t childpid; // used for subproccesses
 	
 	socklen_t addrSize;
+	sem_init(&sem, 0, 1);
+	
+	
 	struct sockaddr_in serverAd, clientAd;  // initializing the server and client address holder
 	char buffer[BUFFER_SIZE];
 	
@@ -79,79 +401,34 @@ int main() {
 		error("Error: Server was not able to listen to client.\n");
 	}
 	
+	
+	
+	pthread_t tid[MAX_CONNS];
+	struct sockaddr_storage server_store;
+	
+	int count = 0;
+	int socketArray[2];
+	socketArray[0] = data_socket;
 	// indefinite loop for listening
 	while(1) {
-		
+		addrSize = sizeof(server_store);
 		newSock = accept(socketfd, (struct sockaddr*)&clientAd, &addrSize);
-		if (newSock < 0) {
-			error("Error: The client could not be accepted.\n");
-		} 
-		printf("Connection accepted from %s:%d\n", inet_ntoa(clientAd.sin_addr), ntohs(clientAd.sin_port));
 		
-		if ((childpid = fork()) == 0) { // This is the child case
-			close(socketfd);
-
-			while(1) {
-
-				// Recieve the flag from the client so the server can determine what to do next
-				recv(newSock, buffer, BUFFER_SIZE, 0);
-				if (strcmp(buffer, "00") == 0) {
-					// This if statement case is for seller related actions
-					SellerInfo seller;
-					seller = recv_seller_info(newSock); // Get the seller info from client
-					
-					send_new_seller(data_socket, seller); // Sending the new seller info to the data server
-					
-					bzero(buffer, BUFFER_SIZE);
-					/*
-					if (recv(data_socket, buffer, BUFFER_SIZE, 0) < 0) {
-						printf("Error recieving message.\n");
-					} else {
-						printf("Server: %s\n", buffer);
-					}
-					*/
-						
-				} else if (strcmp(buffer, "10") == 0) {
-					// This if statement case is for customer related actions
-					CustomerInfo customer;
-					customer = recv_customer_info(newSock);
-					send_new_customer(data_socket, customer);
-					
-				} else if (strcmp(buffer, "20") == 0) {
-					// This if statement case is for product related actions
-					ProductInfo product;
-					product = recv_product_info(data_socket);
-					send_new_product(newSock, product);
-					
-				} else if (strcmp(buffer, "30") == 0) {
-					// This if statement case is for billing related actions
-					
-					
-				} else if (strcmp(buffer, "41") == 0) {
-					// This if statement case is for order related actions
-					char id[BUFFER_SIZE];
-					// This is where the server recieves the ID of the customer order they want to view
-					if (recv(newSock, buffer, BUFFER_SIZE, 0) < 0) {
-						printf("Error recieving message.\n");
-					} 
-					strcpy(id, &buffer); // copying the ID recieved from the client into the id char array
-					bzero(buffer, BUFFER_SIZE);
-					CustomerOrder order;
-					order = recv_order_info(data_socket, id); // Getting the order info from the data server
-					send_order_info(newSock, order); // sending the order info to the client 
-				} 
-				
-					
-					printf("Client: %s\n", buffer);
-					send(newSock, buffer, strlen(buffer), 0);
-					bzero(buffer, BUFFER_SIZE);
-					
-				
+		socketArray[1] = newSock;
+		
+		
+		if (pthread_create(&clithreads[count++], NULL, clientFunc, &socketArray)) error("Failed to create the thread.\n");
+		
+		if (count >= MAX_CONNS) {
+			count = 0;
+			while(count < MAX_CONNS) {
+				pthread_join(clithreads[count++], NULL);
 			}
-		} 
-		
+			count = 0;
+		}
 	}
 		
-	close(newSock);
-	
+		
+		return 0;
+		
 }

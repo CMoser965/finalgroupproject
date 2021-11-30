@@ -3,13 +3,15 @@ Created by: Roper Freeman-Vivanco
 
 Description: This is the header file for the c program FinalServer.c
 */
+#define SELLER 1
+#define CUSTOMER 2
+#define PRODUCT 3
+#define BILLING 4
+#define ORDER 5
+
+#define PORT 4000
 #define BUFFER_SIZE 2048
 
-#define SELLER 0
-#define CUSTOMER 1
-#define PRODUCT 2
-#define BILLING 3
-#define ORDER 4
 
 typedef struct {
     int connection;
@@ -53,71 +55,24 @@ typedef struct {
     int price;
 } CustomerOrder;
 
+typedef CustomerInfo customer_information_t;
+typedef SellerInfo seller_information_t;
+typedef ProductInfo product_information_t;
+typedef BillingInfo billing_information_t;
+typedef CustomerOrder customer_order_t;
 
-// These functions are based on the send and recv functions that Christian has made so communication is clear between the servers and clients
+void error(char *error);
 
-void send_seller_info(int connection, SellerInfo seller) {
-	if (write(connection, &seller, sizeof(SellerInfo)) < 0) {
-		printf("Information could not be sent.\n");
-	}
-}
+Server init_server();
 
-SellerInfo recv_seller_info(int connection) {
-	char buffer[sizeof(SellerInfo)];
-	
-	if(recv(connection, buffer, sizeof(SellerInfo), 0) < 0) {\
-		printf("Information could not be read.\n");
-	}
-	
-	SellerInfo *tmp = (SellerInfo*)&buffer;
-	
-	return *tmp;
-}
+int init_client();
 
-
-void send_customer_info(int connection, CustomerInfo customer) {
-	if (write(connection, &customer, sizeof(CustomerInfo)) < 0) {
-		printf("Information could not be sent.\n");
-	}
-}
-
-CustomerInfo recv_customer_info(int connection) {
-	char buffer[sizeof(CustomerInfo)];
-	
-	if(recv(connection, buffer, sizeof(CustomerInfo), 0) < 0) {\
-		printf("Information could not be read.\n");
-	}
-	
-	CustomerInfo *tmp = (CustomerInfo*)&buffer;
-	
-	return *tmp;
-	
-}
-
-
-void send_product_info(int connection, ProductInfo product) {
-	if (write(connection, &product, sizeof(ProductInfo)) < 0) {
-		printf("Information could not be sent.\n");
-	}
-}
-
-ProductInfo recv_product_info(int connection) {
-	char buffer[sizeof(ProductInfo)];
-	
-	if(recv(connection, buffer, sizeof(ProductInfo), 0) < 0) {\
-		printf("Information could not be read.\n");
-	}
-	
-	ProductInfo *tmp = (ProductInfo*)&buffer;
-	
-	return *tmp;
-}
-
-void send_order_info(int connection, CustomerOrder order) {
-	if (write(connection, &order, sizeof(CustomerOrder)) < 0) {
-		printf("Information could not be sent.\n");
-	}
-}
+void send_customer_info(int connection, customer_information_t customer);
+customer_information_t recv_customer_info(int connection);
+void send_seller_info(int connection, seller_information_t seller);
+seller_information_t recv_seller_info(int connection);
+void send_product_info(int connection, product_information_t product);
+product_information_t recv_product_info(int connection);
 
 int connect_to_data_server(int data_socket) {
 
@@ -130,7 +85,7 @@ int connect_to_data_server(int data_socket) {
     // specify socket address
     struct sockaddr_in data_address;
     data_address.sin_family = AF_INET;
-    data_address.sin_port = htons(port);
+    data_address.sin_port = htons(4001);
     data_address.sin_addr.s_addr = INADDR_ANY;
     
     // connects to server and saves connection error message
@@ -148,65 +103,131 @@ int connect_to_data_server(int data_socket) {
 
 
 
-void send_new_product(int connection, ProductInfo product) {
-	
-	if (write(connection, "21", sizeof(char[2])) < 0) {
-		printf("Information could not be sent.\n");
-	}
-	
-	send_product_info(connection, product);
+
+// These are the functions that Chrsitian Moser has created, I am simply utilizing them
+
+void send_customer_info(int connection, customer_information_t customer) {
+    if(write(connection, &customer, sizeof(customer_information_t)) < 0)
+        error("Customer information could not be sent.\n");
 }
 
-void send_new_product(int connection, ProductInfo product) {
-	
-	if (write(connection, "21", sizeof(char[2])) < 0) {
-		printf("Information could not be sent.\n");
-	}
-	
-	send_product_info(connection, product);
+customer_information_t recv_customer_info(int connection) {
+    char buffer[sizeof(customer_information_t)];
+    if(recv(connection, buffer, sizeof(customer_information_t), 0) < 0)
+    error("Could not read customer info.\n");
+
+    customer_information_t *temp = (customer_information_t*)&buffer;
+
+    return *temp;
 }
 
-void send_new_customer(int connection, CustomerInfo customer) {
-	
-	if (write(connection, "10", sizeof(char[2])) < 0) {
-		printf("Information could not be sent.\n");
-	}
-	
-	send_customer_info(connection, customer);
+/*
+* Function: send_seller_info
+* ----------------------------
+* sends struct of seller information to network socket
+* 
+* connection: file descriptor of network socket
+* seller: struct to be sent
+*/
+void send_seller_info(int connection, seller_information_t seller) {
+    if(write(connection, &seller, sizeof(seller_information_t)) < 0) error("Seller information could not be sent.\n");
 }
 
-void send_new_seller(int connection, SellerInfo seller) {
-	
-	if (write(connection, "00", sizeof(char[2])) < 0) {
-		printf("Information could not be sent.\n");
-	}
-	
-	send_seller_info(connection, seller);
+seller_information_t recv_seller_info(int connection) {
+    char buffer[sizeof(seller_information_t)];
+    if(recv(connection, buffer, sizeof(seller_information_t), 0) < 0) error("Could not read seller info.\n");
+
+    seller_information_t *temp = (seller_information_t*)&buffer;
+
+    return *temp;
 }
 
-CustomerOrder recv_order_info(int connection, char[] id) {
-	
-	// Sending flag to the data server so I can recieve a customer order
-	if (write(connection, "41", sizeof(char[2])) < 0) {
-		printf("Information could not be sent.\n");
-	}
-	
-	// Before I can recieve the order I need to send the ID
-	if (write(connection, id, sizeof(id) < 0) {
-		printf("Information could not be sent.\n");
-	}
-	
-	// Now I will wait for a response
-	char buffer[sizeof(CustomerOrder)];
-	
-	if(recv(connection, buffer, sizeof(CustomerOrder), 0) < 0) {\
-		printf("Information could not be read.\n");
-	}
-	
-	CustomerOrder *tmp = (CustomerOrder*)&buffer;
-	
-	// Return the customer order that was sent 
-	return *tmp;
+/*
+* Function: send_product_info
+* ----------------------------
+* sends struct of product information to network socket
+* 
+* connection: file descriptor of network socket
+* product: struct to be sent
+*/
+void send_product_info(int connection, product_information_t product) {
+    if(write(connection, &product, sizeof(product_information_t)) < 0) error("Seller information could not be sent.\n");
+}
+
+product_information_t recv_product_info(int connection) {
+    char buffer[sizeof(product_information_t)];
+    if(recv(connection, buffer, sizeof(product_information_t), 0) < 0) error("Could not read seller info.\n");
+
+    product_information_t *temp = (product_information_t*)&buffer;
+
+    return *temp;
+}
+
+/*
+* Function: send_billing_info
+* ----------------------------
+* sends struct of billing information to network socket
+* 
+* connection: file descriptor of network socket
+* billing: struct to be sent
+*/
+void send_billing_info(int connection, billing_information_t billing) {
+    if(write(connection, &billing, sizeof(billing_information_t)) < 0) error("Seller information could not be sent.\n");
+}
+
+billing_information_t recv_billing_info(int connection) {
+    char buffer[sizeof(billing_information_t)];
+    if(recv(connection, buffer, sizeof(billing_information_t), 0) < 0) error("Could not read seller info.\n");
+
+    billing_information_t *temp = (billing_information_t*)&buffer;
+
+    return *temp;
+}
+
+/*
+* Function: send_customer_order
+* ----------------------------
+* sends struct of order information to network socket
+* 
+* connection: file descriptor of network socket
+* order: struct to be sent
+*/
+void send_customer_order(int connection, customer_order_t order) {
+    if(write(connection, &order, sizeof(customer_order_t)) < 0) error("Seller information could not be sent.\n");
+}
+
+customer_order_t recv_customer_order(int connection) {
+    char buffer[sizeof(customer_order_t)];
+    if(recv(connection, buffer, sizeof(customer_order_t), 0) < 0) error("Could not read seller info.\n");
+
+    customer_order_t *temp = (customer_order_t*)&buffer;
+
+    return *temp;
 }
 
 
+
+int is_void_cust(customer_information_t temp) {
+    if(temp.name == NULL && temp.id == 0 && temp.contact_address == NULL && temp.contact_number == NULL) return 1;
+    else return 0;
+}
+
+int is_void_sell(seller_information_t temp) {
+    if(temp.name == NULL && temp.id == 0 && temp.contact_address == NULL && temp.contact_number == NULL) return 1;
+    else return 0;
+}
+
+int is_void_prod(product_information_t temp) {
+    if(temp.description == NULL && temp.id == 0 && temp.quantity == 0 && temp.price == 0 && temp.seller_id == 0) return 1;
+    else return 0;
+}
+
+int is_void_bill(billing_information_t temp) {
+    if(temp.price == 0 && temp.id == 0 && temp.customer_id == 0 && temp.address == NULL) return 1;
+    else return 0;
+}
+
+int is_void_order(customer_order_t temp) {
+    if(temp.address == NULL && temp.id == 0 && temp.price == 0 && temp.product_id == 0 && temp.quantity == 0) return 1;
+    else return 0;
+}
