@@ -101,7 +101,20 @@ void get_query(int data, int client) {
 				
 			case PRODUCT: ;
 				// product query case
+				int cont = 1;
 				
+				while(cont) {
+					product_information_t product;
+					product = recv_product_info(data);
+					
+					if (is_void_prod(product)) {
+						send_product_info(client, product);
+						cont = 0;
+					} else {
+						send_product_info(client, product); 
+					}
+					bzero(buffer, sizeof(buffer));
+				}
 				
 				break;
 			
