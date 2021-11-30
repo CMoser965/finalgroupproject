@@ -163,11 +163,12 @@ void get_write(int data, int client) {
 	int dataType;
 	dataType = atoi(buffer); // getting the type of data that they want to write
 	bzero(buffer, sizeof(buffer)); // resetting the buffer
+	printf("%d\n", dataType);
 	
 	switch(dataType) {
-		case CUSTOMER: ;
+			case CUSTOMER: ;
 			// customer write case
-
+	
 			customer_information_t customer;
 			customer = recv_customer_info(client); // get the customer from the client
 			send_customer_info(data, customer); // send the new customer over to the data server
@@ -177,9 +178,15 @@ void get_write(int data, int client) {
 			
 			case SELLER: ;
 				// seller write case
+				
+				printf("Made it to seller\n");
 				seller_information_t seller;
 				seller = recv_seller_info(client);
+				printf("%d\n", seller.id);
+				print_seller(seller);
+				printf("%s", seller.contact_address);
 				send_seller_info(data, seller);
+			
 				bzero(buffer, sizeof(buffer));
 				break;
 				
@@ -205,6 +212,8 @@ void get_write(int data, int client) {
 				error("Incorrect data type specified\n");
 				break;
 	}
+	
+	printf("Hi1");
 }
 
 void get_edit(int data, int client) {
@@ -221,7 +230,7 @@ void get_edit(int data, int client) {
 	bzero(buffer, sizeof(buffer)); // resetting the buffer
 	
 	switch(dataType) {
-		case CUSTOMER: ;
+			case CUSTOMER: ;
 			// customer edit case
 
 			customer_information_t customer;
@@ -304,21 +313,22 @@ void get_delete(int data, int client) {
 
 void* clientFunc(void* args)  {
 	
-	unsigned int (*conn)[2] = (unsigned int(*)[2])args;
-	int data = conn[0];
-	int client = conn[1];
+	Sockets sock = *((Sockets*)args);
+	int data = sock.data;
+
+	int client = sock.client;
+	
 	clinum++;
 	
 	int32_t flag = 0;
-	int connected = 1;
 	char buffer[BUFFER_SIZE];
 	
 	do {
 		read(client, buffer, sizeof(buffer));
 		flag = atoi(buffer);
-		while(read(client, buffer, sizeof(buffer)) == 0);
-		bzero(buffer, sizeof(buffer));
 		
+		while(read(client, buffer, sizeof(buffer) == 0));
+		bzero(buffer, sizeof(buffer));
 		switch(flag) {
 			case QUERY: ;
 			
@@ -326,13 +336,16 @@ void* clientFunc(void* args)  {
 				get_query(data, client);
 				sem_post(&sem);
 				bzero(buffer, sizeof(buffer));
+				break;
 			
 			case WRITE: ;
-			
+				
 				sem_wait(&sem);
 				get_write(data, client);
 				sem_post(&sem);
 				bzero(buffer, sizeof(buffer));
+				printf("Hi2");
+				break;
 			
 			case EDIT: ;
 			
@@ -340,6 +353,7 @@ void* clientFunc(void* args)  {
 				get_edit(data, client);
 				sem_post(&sem);
 				bzero(buffer, sizeof(buffer));
+				break;
 				
 			case DELETE: ;
 			
@@ -347,13 +361,17 @@ void* clientFunc(void* args)  {
 				get_delete(data, client);
 				sem_post(&sem);
 				bzero(buffer, sizeof(buffer));
+				break;
 				
 			default:
+				printf("Not Good\n");
+				flag = SHUTDOWN_SIG;
 				break;
 		}
-	} while(connected);
+	} while(flag);
 	
 	clinum--;
+	printf("Hi3");
 	pthread_exit(NULL);
 	
 }
@@ -420,17 +438,18 @@ int main() {
 	struct sockaddr_storage server_store;
 	
 	int count = 0;
-	int socketArray[2];
-	socketArray[0] = data_socket;
+	Sockets sock;
+	sock.data = data_socket;
+
+	
 	// indefinite loop for listening
 	while(1) {
 		addrSize = sizeof(server_store);
 		newSock = accept(socketfd, (struct sockaddr*)&clientAd, &addrSize);
 		
-		socketArray[1] = newSock;
+		sock.client = newSock;
 		
-		
-		if (pthread_create(&clithreads[count++], NULL, clientFunc, &socketArray)) error("Failed to create the thread.\n");
+		if (pthread_create(&clithreads[count++], NULL, clientFunc, &sock)) error("Failed to create the thread.\n");
 		
 		if (count >= MAX_CONNS) {
 			count = 0;

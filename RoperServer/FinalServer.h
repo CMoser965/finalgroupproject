@@ -13,17 +13,26 @@ Description: This is the header file for the c program FinalServer.c
 #define BUFFER_SIZE 2048
 
 
+
+typedef struct {
+	int data;
+	int client;
+} Sockets;
+
 typedef struct {
     int connection;
     int server_socket;
 } Server;
 
+#pragma pack(1)
 typedef struct {
-    char id;
+    int id;
     char name[BUFFER_SIZE];
-    char contact_number;
+    char contact_number[BUFFER_SIZE];
     char contact_address[BUFFER_SIZE];
 } SellerInfo;
+#pragma pack(0)
+
 
 typedef struct {
     int id;
@@ -74,6 +83,13 @@ seller_information_t recv_seller_info(int connection);
 void send_product_info(int connection, product_information_t product);
 product_information_t recv_product_info(int connection);
 
+
+
+void print_seller(seller_information_t temp) {
+    printf("Name: %s\tID: %d\tAddress: %s\tPhone num.: %s\t\n", temp.name, temp.id, temp.contact_address, temp.contact_number);
+}
+
+
 int connect_to_data_server(int data_socket) {
 
 	data_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -95,6 +111,7 @@ int connect_to_data_server(int data_socket) {
         printf("Socket cannot connect. Exiting program.\n");
         exit(1);
     }
+	
 	
 	return data_socket;
 	
@@ -138,6 +155,7 @@ seller_information_t recv_seller_info(int connection) {
     if(recv(connection, buffer, sizeof(seller_information_t), 0) < 0) error("Could not read seller info.\n");
 
     seller_information_t *temp = (seller_information_t*)&buffer;
+	printf("%d\n", temp->id);
 
     return *temp;
 }
