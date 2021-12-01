@@ -24,6 +24,7 @@ Description: This is the file for the server that is the intermediate program th
 #include <signal.h>
 
 #include "FinalServer.h"
+#include "data.h"
 
 
 #define MAX_CONNS 100
@@ -162,7 +163,10 @@ void get_write(int data, int client) {
 	read(client, buffer, sizeof(buffer));
 	int dataType;
 	dataType = atoi(buffer); // getting the type of data that they want to write
-	bzero(buffer, sizeof(buffer)); // resetting the buffer
+	bzero(buffer, sizeof(buffer));
+	sprintf(buffer, "%d", dataType); 
+	write(data, buffer, sizeof(buffer)); // writing to the data server about the type of info transfer
+	bzero(buffer, sizeof(buffer));
 	printf("%d\n", dataType);
 	
 	switch(dataType) {
