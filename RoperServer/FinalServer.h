@@ -1,6 +1,7 @@
 /*
 Created by: Roper Freeman-Vivanco
-
+Group: F
+Email: roper.freeman@okstate.edu
 Description: This is the header file for the c program FinalServer.c
 */
 #define PORT 4000
